@@ -1,0 +1,76 @@
+{% extends 'panel/base.html' %}
+{% block title %}Choraklar{% endblock %}
+{% block page_title %}Choraklar{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+    <select name="subject" class="form-select form-select-sm" style="width:160px;">
+      <option value="">Barcha fanlar</option>
+      {% for s in subjects %}<option value="{{ s.pk }}" {% if subject_id == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+    </select>
+    <select name="grade" class="form-select form-select-sm" style="width:120px;">
+      <option value="">Barcha sinflar</option>
+      {% for g in grades %}<option value="{{ g }}" {% if grade == g|stringformat:'s' %}selected{% endif %}>{{ g }}-sinf</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+    {% if subject_id or grade %}<a href="{% url 'panel:quarters' %}" class="btn btn-sm btn-secondary">Tozalash</a>{% endif %}
+  </form>
+  <a href="{% url 'panel:quarter_create' %}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus me-1"></i>Yangi chorak
+  </a>
+</div>
+
+<div class="card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Fan</th>
+        <th>Sinf</th>
+        <th>Chorak</th>
+        <th>Sarlavha</th>
+        <th>Test</th>
+        <th>Holat</th>
+        <th>Amallar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in quarters %}
+      <tr>
+        <td style="font-weight:500;font-size:.85rem;">{{ q.subject.name }}</td>
+        <td><span class="badge badge-blue">{{ q.grade }}-sinf</span></td>
+        <td><span class="badge badge-gray">{{ q.number }}-chorak</span></td>
+        <td style="font-size:.83rem;color:var(--slate-500);">{{ q.title|default:"—" }}</td>
+        <td>
+          {% if q.quiz %}
+          <span class="badge badge-purple">{{ q.quiz.questions.count }} savol</span>
+          {% else %}
+          <span style="font-size:.75rem;color:var(--slate-300);">Test yo'q</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'panel:quarter_edit' q.pk %}" class="btn-icon" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'panel:quarter_delete' q.pk %}" class="d-inline"
+                  onsubmit="return confirm('Chorakni o\'chirishni tasdiqlaysizmi?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-icon" style="color:var(--red);" title="O'chirish">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" style="text-align:center;padding:40px;color:var(--slate-400);">Choraklar topilmadi</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

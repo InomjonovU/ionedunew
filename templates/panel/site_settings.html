@@ -1,0 +1,153 @@
+{% extends 'panel/base.html' %}
+
+{% block title %}Sayt sozlamalari{% endblock %}
+{% block page_title %}Sayt sozlamalari{% endblock %}
+
+{% block content %}
+
+<!-- Haqiqiy statistika -->
+<div class="mb-4">
+  <h6 class="section-title"><i class="bi bi-database me-1"></i> Bazadagi haqiqiy raqamlar</h6>
+  <div class="row g-3">
+    <div class="col-6 col-md">
+      <div class="stat-card text-center">
+        <div class="stat-num" style="font-size:1.4rem;color:var(--blue);">{{ real_stats.students }}</div>
+        <div style="font-size:.75rem;color:var(--slate-500);margin-top:4px;">O'quvchilar</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card text-center">
+        <div class="stat-num" style="font-size:1.4rem;color:var(--blue);">{{ real_stats.lessons }}</div>
+        <div style="font-size:.75rem;color:var(--slate-500);margin-top:4px;">Darslar</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card text-center">
+        <div class="stat-num" style="font-size:1.4rem;color:var(--blue);">{{ real_stats.subjects }}</div>
+        <div style="font-size:.75rem;color:var(--slate-500);margin-top:4px;">Fanlar</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card text-center">
+        <div class="stat-num" style="font-size:1.4rem;color:var(--blue);">{{ real_stats.certificates }}</div>
+        <div style="font-size:.75rem;color:var(--slate-500);margin-top:4px;">Sertifikatlar</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card text-center">
+        <div class="stat-num" style="font-size:1.4rem;color:var(--blue);">{{ real_stats.questions }}</div>
+        <div style="font-size:.75rem;color:var(--slate-500);margin-top:4px;">Test savollari</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sozlamalar formasi -->
+<div class="card">
+  <div class="card-header-panel">
+    <div class="title"><i class="bi bi-gear me-1"></i> Saytda ko'rsatiladigan statistika</div>
+  </div>
+  <div style="padding:20px;">
+    <form method="post">
+      {% csrf_token %}
+
+      <!-- Haqiqiy statistika toggle -->
+      <div class="p-3 rounded-3 mb-4" style="background:var(--blue-light);border:1px solid var(--blue-mid);">
+        <div class="form-check form-switch d-flex align-items-center gap-3">
+          {{ form.use_real_stats }}
+          <label class="form-check-label fw-600" for="{{ form.use_real_stats.id_for_label }}">
+            <i class="bi bi-database-check me-1"></i> {{ form.use_real_stats.label }}
+          </label>
+        </div>
+        <div style="font-size:.78rem;color:var(--slate-500);margin-top:6px;margin-left:28px;">
+          Yoqilganda bazadagi haqiqiy raqamlar saytda ko'rsatiladi. O'chirilganda quyidagi qiymatlar ishlatiladi.
+        </div>
+      </div>
+
+      <!-- Statistika qiymatlari -->
+      <div id="manual-stats">
+        <h6 class="section-title"><i class="bi bi-pencil-square me-1"></i> Qo'lda kiritilgan statistika</h6>
+        <div class="row g-3">
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.students_count.id_for_label }}">
+              <i class="bi bi-people me-1" style="color:var(--blue);"></i> {{ form.students_count.label }}
+            </label>
+            {{ form.students_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.video_lessons_count.id_for_label }}">
+              <i class="bi bi-play-circle me-1" style="color:var(--blue);"></i> {{ form.video_lessons_count.label }}
+            </label>
+            {{ form.video_lessons_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.subjects_count.id_for_label }}">
+              <i class="bi bi-collection me-1" style="color:var(--blue);"></i> {{ form.subjects_count.label }}
+            </label>
+            {{ form.subjects_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.certificates_count.id_for_label }}">
+              <i class="bi bi-award me-1" style="color:var(--green);"></i> {{ form.certificates_count.label }}
+            </label>
+            {{ form.certificates_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.active_students_count.id_for_label }}">
+              <i class="bi bi-person-check me-1" style="color:var(--blue);"></i> {{ form.active_students_count.label }}
+            </label>
+            {{ form.active_students_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.average_rating.id_for_label }}">
+              <i class="bi bi-star me-1" style="color:var(--amber);"></i> {{ form.average_rating.label }}
+            </label>
+            {{ form.average_rating }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.test_questions_count.id_for_label }}">
+              <i class="bi bi-patch-question me-1" style="color:var(--purple);"></i> {{ form.test_questions_count.label }}
+            </label>
+            {{ form.test_questions_count }}
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <label class="form-label" for="{{ form.grades_count.id_for_label }}">
+              <i class="bi bi-mortarboard me-1" style="color:var(--purple);"></i> {{ form.grades_count.label }}
+            </label>
+            {{ form.grades_count }}
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="bi bi-check-lg me-1"></i> Saqlash
+        </button>
+        <a href="{% url 'panel:dashboard' %}" class="btn btn-secondary">Bekor qilish</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Haqiqiy statistika yoqilganda qo'lda kiritish bo'limini xiralashtirish
+  const toggle = document.getElementById('{{ form.use_real_stats.id_for_label }}');
+  const manual = document.getElementById('manual-stats');
+
+  function updateManualState() {
+    if (toggle.checked) {
+      manual.style.opacity = '0.4';
+      manual.style.pointerEvents = 'none';
+    } else {
+      manual.style.opacity = '1';
+      manual.style.pointerEvents = 'auto';
+    }
+  }
+
+  toggle.addEventListener('change', updateManualState);
+  updateManualState();
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Dars qulflangan — EduSphere{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-xl-5">
+
+      <div class="card p-5 text-center">
+        <div style="width:72px;height:72px;background:var(--amber-bg);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-lock-fill" style="font-size:1.8rem;color:var(--amber);"></i>
+        </div>
+
+        <h4 class="fw-800 mb-2">Dars qulflangan</h4>
+        <p class="text-muted mb-4" style="font-size:.9rem;line-height:1.7;">
+          "{{ lesson.title }}" darsiga kirish uchun avvalgi darsni tugatishingiz kerak.
+        </p>
+
+        <div class="p-3 rounded-3 mb-4 d-flex align-items-center gap-3 text-start" style="background:var(--light);border:1px solid var(--border);">
+          <div style="width:40px;height:40px;background:var(--blue-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-play-circle" style="color:var(--blue);"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-600" style="font-size:.88rem;">Avval tugating:</div>
+            <div class="text-muted" style="font-size:.82rem;">{{ prev_lesson.title }}</div>
+          </div>
+        </div>
+
+        <a href="{% url 'lessons:detail' prev_lesson.pk %}" class="btn btn-primary px-4">
+          <i class="bi bi-arrow-left me-1"></i>Oldingi darsga o'tish
+        </a>
+      </div>
+
+      <!-- Chorak darslari -->
+      {% if quarter_lessons %}
+      <div class="card p-4 mt-4">
+        <h6 class="fw-700 mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-list-ol" style="color:var(--blue);"></i>Chorak darslari
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          {% for l in quarter_lessons %}
+          <div class="d-flex align-items-center gap-3 p-2 rounded-2 {% if l.pk == lesson.pk %}border{% endif %}"
+               style="{% if l.pk == lesson.pk %}border-color:var(--amber) !important;background:var(--amber-bg);{% endif %}">
+            <div style="width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;
+                 background:{% if l.pk in completed_lesson_ids %}var(--blue){% elif l.pk == lesson.pk %}var(--amber){% else %}var(--light){% endif %};
+                 color:{% if l.pk in completed_lesson_ids %}#fff{% elif l.pk == lesson.pk %}#fff{% else %}var(--gray){% endif %};">
+              {% if l.pk in completed_lesson_ids %}
+              <i class="bi bi-check-lg" style="font-size:.7rem;"></i>
+              {% elif l.pk == lesson.pk %}
+              <i class="bi bi-lock-fill" style="font-size:.6rem;"></i>
+              {% else %}
+              {{ forloop.counter }}
+              {% endif %}
+            </div>
+            <span class="text-truncate" style="font-size:.82rem;{% if l.pk == lesson.pk %}font-weight:600;color:var(--amber);{% else %}color:var(--gray);{% endif %}">{{ l.title }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

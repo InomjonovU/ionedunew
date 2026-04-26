@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block title %}{{ quiz.title }} — EduSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+  .q-card { border:2px solid #E5EAF1; border-radius:var(--radius); padding:28px; transition:border-color .2s, box-shadow .2s; background:#fff; }
+  .q-card.active { border-color:var(--blue); box-shadow:0 4px 24px rgba(26,111,212,.1); }
+  .choice-label { display:flex; align-items:center; gap:14px; padding:14px 18px; border:1.5px solid #E5EAF1; border-radius:12px; cursor:pointer; transition:all .15s; margin-bottom:10px; user-select:none; }
+  .choice-label:hover { border-color:var(--blue); background:var(--blue-bg); }
+  .choice-label input[type=radio] { display:none; }
+  .choice-label.selected { border-color:var(--blue); background:var(--blue-bg); }
+  .choice-dot { width:22px;height:22px;border-radius:50%;border:2px solid #D1D9E0;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s; }
+  .choice-label:hover .choice-dot { border-color:var(--blue); }
+  .choice-label.selected .choice-dot { border-color:var(--blue);background:var(--blue); }
+  .choice-label.selected .choice-dot::after { content:''; width:8px;height:8px;background:#fff;border-radius:50%;display:block; }
+  .choice-letter { width:28px;height:28px;border-radius:8px;background:#F3F4F6;color:var(--gray);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;transition:all .15s; }
+  .choice-label:hover .choice-letter, .choice-label.selected .choice-letter { background:var(--blue);color:#fff; }
+  .q-nav-btn { width:38px;height:38px;border-radius:9px;border:1.5px solid #E5EAF1;background:#fff;display:flex;align-items:center;justify-content:center;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray); }
+  .q-nav-btn:hover { border-color:var(--blue);color:var(--blue); }
+  .q-nav-btn.answered { background:var(--blue);border-color:var(--blue);color:#fff; }
+  .q-nav-btn.current { border-color:var(--blue);color:var(--blue);background:var(--blue-bg); }
+  .q-nav-btn.answered.current { background:var(--blue);color:#fff;box-shadow:0 0 0 3px rgba(26,111,212,.2); }
+  #timer { font-family:'Sora',sans-serif;font-weight:800;font-size:2rem;letter-spacing:-.5px; }
+  #timer.warning { color:var(--red); animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+  .progress-bar-quiz { height:4px; background:var(--blue-bg); border-radius:4px; margin-bottom:20px; }
+  .progress-bar-quiz-fill { height:100%; background:var(--blue); border-radius:4px; transition:width .3s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+
+  <!-- Progress bar -->
+  <div class="progress-bar-quiz">
+    <div class="progress-bar-quiz-fill" id="progressFill" style="width:0%;"></div>
+  </div>
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h5 class="fw-800 mb-1">{{ quiz.title }}</h5>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge rounded-pill px-3 py-1" style="font-size:.76rem;font-weight:600;background:var(--blue-bg);color:var(--blue);">
+          {% if quiz.quiz_type == 'quarter' %}<i class="bi bi-award me-1"></i>Chorak testi{% else %}<i class="bi bi-clipboard-check me-1"></i>Dars testi{% endif %}
+        </span>
+        <span class="text-muted" style="font-size:.82rem;"><i class="bi bi-question-circle me-1"></i>{{ questions|length }} savol</span>
+        {% if attempts_left is not None %}
+        <span class="badge rounded-pill px-3 py-1" style="font-size:.76rem;font-weight:600;background:var(--amber-bg);color:var(--amber);">
+          <i class="bi bi-arrow-repeat me-1"></i>{{ attempts_left }} urinish qoldi
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% if quiz.time_limit %}
+    <div class="card p-3 text-center" style="min-width:100px;border-color:var(--blue-bg);">
+      <div id="timer">--:--</div>
+      <div class="text-muted" style="font-size:.72rem;">vaqt qoldi</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Savollar -->
+    <div class="col-lg-8">
+      <form id="quizForm" method="post" action="{% url 'quizzes:submit' quiz.pk %}">
+        {% csrf_token %}
+
+        {% for question in questions %}
+        <div class="q-card mb-3 {% if forloop.first %}active{% endif %}" id="q-{{ forloop.counter }}" {% if not forloop.first %}style="display:none"{% endif %}>
+          <div class="d-flex align-items-start gap-3 mb-4">
+            <span class="fw-700 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style="width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--blue-hov));color:#fff;font-size:.9rem;box-shadow:0 4px 12px rgba(26,111,212,.3);">
+              {{ forloop.counter }}
+            </span>
+            <div class="flex-grow-1">
+              <p class="fw-600 mb-0" style="line-height:1.7;font-size:1rem;">{{ question.text }}</p>
+              {% if question.image %}<img src="{{ question.image.url }}" class="img-fluid rounded-3 mt-3" style="max-height:220px;">{% endif %}
+            </div>
+          </div>
+
+          <div>
+            {% for choice in question.choices.all %}
+            <label class="choice-label {% if choice.pk in answered_choice_ids %}selected{% endif %}" id="cl-{{ question.pk }}-{{ choice.pk }}">
+              <input type="radio" name="question_{{ question.pk }}" value="{{ choice.pk }}"
+                     {% if choice.pk in answered_choice_ids %}checked{% endif %}
+                     onchange="onAnswer({{ question.pk }}, this)">
+              <div class="choice-dot"></div>
+              <span class="choice-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% else %}{{ forloop.counter }}{% endif %}</span>
+              <span style="font-size:.93rem;">{{ choice.text }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Nav tugmalari -->
+        <div class="d-flex justify-content-between mt-4 gap-2">
+          <button type="button" onclick="prevQ()" class="btn btn-light px-4" id="prevBtn" disabled>
+            <i class="bi bi-arrow-left me-1"></i>Oldingi
+          </button>
+          <button type="button" onclick="nextQ()" class="btn btn-primary px-4" id="nextBtn">
+            Keyingi <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+          <button type="submit" class="btn btn-primary px-4 d-none" id="submitBtn" onclick="return confirmSubmit()">
+            <i class="bi bi-check-lg me-1"></i>Yakunlash
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="card p-4 sidebar-sticky">
+        <h6 class="fw-700 mb-3"><i class="bi bi-grid-3x3-gap me-2" style="color:var(--blue);"></i>Savollar</h6>
+        <div class="d-flex flex-wrap gap-2 mb-4" id="qNav">
+          {% for q in questions %}
+          <button type="button" onclick="goTo({{ forloop.counter }})"
+                  class="q-nav-btn {% if q.pk in answered_question_ids %}answered{% endif %} {% if forloop.first %}current{% endif %}"
+                  id="nav-{{ forloop.counter }}">
+            {{ forloop.counter }}
+          </button>
+          {% endfor %}
+        </div>
+        <div class="d-flex gap-3 flex-wrap mb-3" style="font-size:.78rem;">
+          <span class="d-flex align-items-center gap-1">
+            <span style="width:14px;height:14px;background:var(--blue);border-radius:4px;display:inline-block;"></span>Javob berildi
+          </span>
+          <span class="d-flex align-items-center gap-1">
+            <span style="width:14px;height:14px;border:1.5px solid #E5EAF1;border-radius:4px;display:inline-block;"></span>Javob berilmadi
+          </span>
+        </div>
+        <hr style="border-color:#F3F4F6;">
+        <div class="d-flex flex-column gap-2" style="font-size:.85rem;">
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Jami savol</span>
+            <strong>{{ questions|length }}</strong>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">O'tish bali</span>
+            <strong style="color:var(--blue);">{{ quiz.pass_score }}%</strong>
+          </div>
+          {% if quiz.time_limit %}
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Vaqt chegarasi</span>
+            <strong>{{ quiz.time_limit }} daq</strong>
+          </div>
+          {% endif %}
+          {% if attempts_left is not None %}
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Qolgan urinish</span>
+            <strong style="color:var(--amber);">{{ attempts_left }}</strong>
+          </div>
+          {% endif %}
+        </div>
+
+        <button type="button" onclick="document.getElementById('submitBtn').classList.remove('d-none'); document.getElementById('nextBtn').classList.add('d-none'); document.getElementById('submitBtn').click();"
+                class="btn btn-outline-primary btn-sm w-100 mt-3">
+          <i class="bi bi-send me-1"></i>Testni yakunlash
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOTAL = {{ questions|length }};
+const ATTEMPT_ID = {{ attempt.pk }};
+const TIME_LIMIT = {{ time_limit_seconds }};
+const csrfToken = '{{ csrf_token }}';
+let current = 1;
+let timeLeft = TIME_LIMIT;
+let answeredCount = {{ answered_question_ids|length }};
+
+function updateProgress() {
+  const pct = (answeredCount / TOTAL) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+updateProgress();
+
+function showQ(n) {
+  document.querySelectorAll('[id^="q-"]').forEach(el => { el.style.display='none'; el.classList.remove('active'); });
+  document.querySelectorAll('.q-nav-btn').forEach(el => el.classList.remove('current'));
+  const el = document.getElementById(`q-${n}`);
+  if (el) { el.style.display='block'; el.classList.add('active'); }
+  const navBtn = document.getElementById(`nav-${n}`);
+  navBtn?.classList.add('current');
+  document.getElementById('prevBtn').disabled = n === 1;
+  const isLast = n === TOTAL;
+  document.getElementById('nextBtn').classList.toggle('d-none', isLast);
+  document.getElementById('submitBtn').classList.toggle('d-none', !isLast);
+  current = n;
+}
+function nextQ() { if (current < TOTAL) showQ(current + 1); }
+function prevQ() { if (current > 1) showQ(current - 1); }
+function goTo(n) { showQ(n); }
+
+function confirmSubmit() {
+  const unanswered = TOTAL - answeredCount;
+  if (unanswered > 0) {
+    return confirm(`${unanswered} ta savolga javob bermagansiz. Shunga qaramay yakunlaysizmi?`);
+  }
+  return true;
+}
+
+async function onAnswer(questionId, input) {
+  const wasAnswered = document.getElementById(`nav-${current}`)?.classList.contains('answered');
+
+  document.querySelectorAll(`label[id^="cl-${questionId}-"]`).forEach(l => l.classList.remove('selected'));
+  document.getElementById(`cl-${questionId}-${input.value}`)?.classList.add('selected');
+
+  const navBtn = document.getElementById(`nav-${current}`);
+  if (navBtn && !wasAnswered) {
+    navBtn.classList.add('answered');
+    answeredCount++;
+    updateProgress();
+  }
+
+  const fd = new FormData();
+  fd.append('attempt_id', ATTEMPT_ID);
+  fd.append('question_id', questionId);
+  fd.append('choice_id', input.value);
+  await fetch('/tests/save-answer/', { method:'POST', headers:{'X-CSRFToken':csrfToken}, body: fd });
+}
+
+// Timer
+if (TIME_LIMIT > 0) {
+  const timerEl = document.getElementById('timer');
+  const interval = setInterval(() => {
+    timeLeft--;
+    const m = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    const s = (timeLeft % 60).toString().padStart(2,'0');
+    timerEl.textContent = `${m}:${s}`;
+    if (timeLeft <= 60) timerEl.classList.add('warning');
+    if (timeLeft <= 0) { clearInterval(interval); document.getElementById('quizForm').submit(); }
+  }, 1000);
+}
+</script>
+{% endblock %}

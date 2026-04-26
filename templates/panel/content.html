@@ -1,0 +1,36 @@
+{% extends 'panel/base.html' %}
+{% block title %}Kontent{% endblock %}
+{% block page_title %}Kontent ko'rinishi{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  {% for s in subjects %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card p-4" style="border-top:3px solid {% if s.color == 'blue' %}var(--blue){% elif s.color == 'red' %}var(--red){% else %}var(--purple){% endif %};">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+                    background:{% if s.color == 'blue' %}var(--blue-bg){% elif s.color == 'red' %}var(--red-bg){% else %}var(--purple-bg){% endif %};
+                    color:{% if s.color == 'blue' %}var(--blue){% elif s.color == 'red' %}var(--red){% else %}var(--purple){% endif %};">
+          <i class="bi {{ s.icon }}"></i>
+        </div>
+        <div>
+          <div class="fw-700">{{ s.name }}</div>
+          <div class="text-muted" style="font-size:.75rem;">{{ s.slug }}</div>
+        </div>
+      </div>
+      <div class="d-flex gap-3 mb-3" style="font-size:.83rem;">
+        <span><i class="bi bi-play-circle me-1 text-primary"></i>{{ s.lesson_count }} dars</span>
+        <span><i class="bi bi-clipboard-check me-1 text-success"></i>{{ s.quiz_count }} test</span>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'panel:lessons' %}?subject={{ s.pk }}" class="btn btn-sm btn-outline-primary">Darslar</a>
+        <a href="{% url 'panel:quizzes' %}?subject={{ s.pk }}" class="btn btn-sm btn-outline-success">Testlar</a>
+        <a href="/admin/subjects/subject/{{ s.pk }}/change/" target="_blank" class="btn btn-sm btn-light ms-auto"><i class="bi bi-pencil"></i></a>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5 text-muted">Fanlar yo'q</div>
+  {% endfor %}
+</div>
+{% endblock %}

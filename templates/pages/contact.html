@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Bog'lanish{% endblock %}
+
+{% block extra_css %}
+<style>
+.contact-card {
+  border: 1px solid #E5EAF1; border-radius: 16px; padding: 28px;
+  transition: box-shadow .2s, transform .2s;
+}
+.contact-card:hover { box-shadow: 0 8px 32px rgba(37,99,235,.1); transform: translateY(-2px); }
+.contact-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+  margin-bottom: 16px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="text-center mb-5">
+    <span class="badge mb-3" style="background:var(--blue-bg);color:var(--blue);padding:6px 14px;border-radius:20px;font-weight:600;">
+      Bog'lanish
+    </span>
+    <h1 class="fw-800 mb-3" style="font-size:2.2rem;">Biz bilan bog'laning</h1>
+    <p class="text-muted mx-auto" style="max-width:520px;font-size:1.05rem;">
+      Savollaringiz bormi? Xabar yuboring yoki quyidagi kanallar orqali muloqot qiling.
+    </p>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="contact-card text-center">
+        <div class="contact-icon mx-auto" style="background:var(--blue-bg);">
+          <i class="bi bi-envelope" style="color:var(--blue);"></i>
+        </div>
+        <h5 class="fw-700 mb-1">Email</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">info@edusphere.uz</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="contact-card text-center">
+        <div class="contact-icon mx-auto" style="background:var(--blue-bg);">
+          <i class="bi bi-telegram" style="color:var(--blue);"></i>
+        </div>
+        <h5 class="fw-700 mb-1">Telegram</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">@edusphere_uz</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="contact-card text-center">
+        <div class="contact-icon mx-auto" style="background:#FFF7ED;">
+          <i class="bi bi-telephone" style="color:#F59E0B;"></i>
+        </div>
+        <h5 class="fw-700 mb-1">Telefon</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;">+998 90 123 45 67</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact form -->
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="contact-card">
+        <h4 class="fw-700 mb-4"><i class="bi bi-chat-dots me-2" style="color:var(--blue);"></i>Xabar yuborish</h4>
+        <form>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-600" style="font-size:.85rem;">Ism</label>
+              <input type="text" class="form-control" placeholder="Ismingiz">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" style="font-size:.85rem;">Email</label>
+              <input type="email" class="form-control" placeholder="email@misol.uz">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600" style="font-size:.85rem;">Mavzu</label>
+              <select class="form-select">
+                <option>Texnik muammo</option>
+                <option>Dars bo'yicha savol</option>
+                <option>Premium obuna</option>
+                <option>Hamkorlik</option>
+                <option>Boshqa</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600" style="font-size:.85rem;">Xabar</label>
+              <textarea class="form-control" rows="5" placeholder="Xabaringizni yozing..."></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-send me-2"></i>Yuborish
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

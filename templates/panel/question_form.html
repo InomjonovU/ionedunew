@@ -1,0 +1,139 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Savolni tahrirlash{% else %}Yangi savol{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.choice-row {
+  background:var(--slate-50); border:1px solid var(--slate-200);
+  border-radius:8px; padding:12px 14px; margin-bottom:8px;
+  transition:background .13s, border-color .13s;
+}
+.choice-letter {
+  width:26px; height:26px; border-radius:6px;
+  background:var(--blue-mid); color:var(--blue);
+  display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; font-weight:700; flex-shrink:0;
+}
+.choice-row:has(input[type=checkbox]:checked) {
+  background:#D1FAE5; border-color:#6EE7B7;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  {% if quiz.lesson_id %}
+  <a href="{% url 'panel:lesson_edit' quiz.lesson_id %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Darsga qaytish
+  </a>
+  {% elif quiz.quarter_id %}
+  <a href="{% url 'panel:quarter_edit' quiz.quarter_id %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Chorakka qaytish
+  </a>
+  {% else %}
+  <a href="{% url 'panel:quiz_edit' quiz.pk %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>{{ quiz.title|truncatechars:30 }}
+  </a>
+  {% endif %}
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Question -->
+    <div class="card p-4 mb-4">
+      <div class="section-title">Savol</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Savol matni *</label>
+          {{ form.text }}
+          {% for e in form.text.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Savol turi</label>
+          {{ form.question_type }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tartib raqami</label>
+          {{ form.order }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Ball</label>
+          {{ form.score }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Rasm (ixtiyoriy)</label>
+          {% if object and object.image %}
+          <div class="mb-2"><img src="{{ object.image.url }}" style="max-height:80px;border-radius:7px;border:1px solid var(--slate-200);"></div>
+          {% endif %}
+          {{ form.image }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Choices -->
+    <div class="card p-4 mb-4">
+      <div class="section-title">Variantlar (to'g'ri javobni belgilang)</div>
+      {{ formset.management_form }}
+
+      {% for cf in formset %}
+      <div class="choice-row">
+        <div class="d-flex align-items-center gap-3">
+          <div class="choice-letter">
+            {% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% elif forloop.counter == 5 %}E{% else %}F{% endif %}
+          </div>
+          <div class="flex-grow-1">
+            {{ cf.text }}
+          </div>
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <label class="d-flex align-items-center gap-1 mb-0" style="font-size:.78rem;font-weight:600;cursor:pointer;color:var(--blue);">
+              {{ cf.is_correct }}
+              To'g'ri
+            </label>
+            {% for hf in cf.hidden_fields %}{{ hf }}{% endfor %}
+          </div>
+        </div>
+        {% if cf.text.errors %}
+        <div style="color:var(--red);font-size:.72rem;margin-top:4px;">{{ cf.text.errors.0 }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div class="d-flex align-items-center gap-2 mt-2 p-3 rounded-2" style="background:var(--amber-light);border:1px solid #FDE68A;">
+        <i class="bi bi-lightbulb-fill" style="color:var(--amber);"></i>
+        <span style="font-size:.78rem;color:#92400E;">Faqat bitta variantni "To'g'ri" deb belgilang. Barcha variantlarni to'ldirish shart emas.</span>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Qo'shish{% endif %}
+      </button>
+      {% if quiz.lesson_id %}
+      <a href="{% url 'panel:lesson_edit' quiz.lesson_id %}" class="btn btn-secondary">Bekor qilish</a>
+      {% elif quiz.quarter_id %}
+      <a href="{% url 'panel:quarter_edit' quiz.quarter_id %}" class="btn btn-secondary">Bekor qilish</a>
+      {% else %}
+      <a href="{% url 'panel:quiz_edit' quiz.pk %}" class="btn btn-secondary">Bekor qilish</a>
+      {% endif %}
+      {% if object %}
+      <form method="post" action="{% url 'panel:question_delete' object.pk %}" class="ms-auto"
+            onsubmit="return confirm('Savolni o\'chirishni tasdiqlaysizmi?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid #FCA5A5;">
+          <i class="bi bi-trash me-1"></i>O'chirish
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

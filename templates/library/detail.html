@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.title }} — Kutubxona{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb" style="font-size:.82rem;">
+      <li class="breadcrumb-item"><a href="{% url 'library:list' %}" class="text-muted">Kutubxona</a></li>
+      <li class="breadcrumb-item active text-muted">{{ item.title|truncatechars:40 }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card p-4">
+        <div class="d-flex gap-4 flex-wrap mb-4">
+          {% if item.cover_image %}
+            <img src="{{ item.cover_image.url }}" style="width:120px;height:160px;object-fit:cover;border-radius:10px;flex-shrink:0;">
+          {% else %}
+            <div style="width:120px;height:160px;background:var(--blue-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi bi-book" style="font-size:2.5rem;color:var(--blue);"></i>
+            </div>
+          {% endif %}
+          <div>
+            <h4 class="fw-800 mb-2">{{ item.title }}</h4>
+            {% if item.author %}<p class="text-muted mb-2"><i class="bi bi-person me-1"></i>{{ item.author }}</p>{% endif %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% if item.subject %}<span class="badge-blue px-2 py-1 rounded-pill" style="font-size:.78rem;">{{ item.subject.name }}</span>{% endif %}
+              {% if item.grade %}<span class="badge-blue px-2 py-1 rounded-pill" style="font-size:.78rem;">{{ item.grade }}-sinf</span>{% endif %}
+              <span class="px-2 py-1 rounded-pill" style="font-size:.78rem;background:var(--light);color:var(--gray);">{{ item.get_item_type_display }}</span>
+            </div>
+            <div class="d-flex gap-4 text-muted mb-4" style="font-size:.83rem;">
+              <span><i class="bi bi-eye me-1"></i>{{ item.view_count }} marta ko'rildi</span>
+              <span><i class="bi bi-download me-1"></i>{{ item.download_count }} marta yuklab olindi</span>
+            </div>
+            {% if item.file %}
+            <a href="{% url 'library:download' item.pk %}" class="btn btn-primary">
+              <i class="bi bi-download me-2"></i>Yuklab olish
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% if item.description %}
+        <hr>
+        <h6 class="fw-700 mb-2">Tavsif</h6>
+        <p class="text-muted mb-0" style="line-height:1.7;">{{ item.description }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card p-4">
+        <h6 class="fw-700 mb-3">Ma'lumot</h6>
+        <div class="d-flex justify-content-between mb-2" style="font-size:.88rem;">
+          <span class="text-muted">Tur</span><span class="fw-500">{{ item.get_item_type_display }}</span>
+        </div>
+        {% if item.subject %}
+        <div class="d-flex justify-content-between mb-2" style="font-size:.88rem;">
+          <span class="text-muted">Fan</span><span class="fw-500">{{ item.subject.name }}</span>
+        </div>
+        {% endif %}
+        {% if item.grade %}
+        <div class="d-flex justify-content-between mb-2" style="font-size:.88rem;">
+          <span class="text-muted">Sinf</span><span class="fw-500">{{ item.grade }}-sinf</span>
+        </div>
+        {% endif %}
+        <div class="d-flex justify-content-between" style="font-size:.88rem;">
+          <span class="text-muted">Kirish</span>
+          <span class="fw-500 text-primary">Bepul</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

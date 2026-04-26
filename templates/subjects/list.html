@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Fanlar — EduSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+  .subj-card {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-decoration: none;
+    transition: all .2s;
+    position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .subj-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .subj-card.color-blue::before { background: linear-gradient(90deg, var(--blue), #6366F1); }
+  .subj-card.color-red::before  { background: linear-gradient(90deg, var(--red), #F97316); }
+  .subj-card.color-green::before { background: linear-gradient(90deg, var(--purple), #06B6D4); }
+  .subj-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--blue-light);
+  }
+  .subj-card .arrow {
+    position: absolute; bottom: 20px; right: 20px;
+    opacity: 0; transform: translateX(-4px);
+    transition: all .2s;
+  }
+  .subj-card:hover .arrow { opacity: 1; transform: translateX(0); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-5">
+
+  <!-- Header -->
+  <div class="text-center mb-5">
+    <div class="ai-badge mb-3"><i class="bi bi-grid-3x3-gap"></i>Ta'lim platformasi</div>
+    <h3 class="fw-800 mb-2" style="letter-spacing:-.3px;">Barcha fanlar</h3>
+    <p class="text-muted" style="max-width:500px;margin:0 auto;">1–11 sinf uchun 15+ fan bo'yicha video darslar, testlar va AI yordamchi</p>
+  </div>
+
+  {% if subjects %}
+  <div class="row g-3">
+    {% for subject in subjects %}
+    <div class="col-6 col-md-4 col-lg-3 fade-up">
+      <a href="{% url 'subjects:detail' subject.slug %}" class="subj-card color-{{ subject.color }}">
+        <div class="subj-icon subj-{{ subject.color }} mb-3">
+          <i class="bi {{ subject.icon }}"></i>
+        </div>
+        <div class="fw-700 mb-1" style="color:var(--dark);font-size:.97rem;">{{ subject.name }}</div>
+        <div style="font-size:.8rem;color:var(--gray);">{{ subject.lesson_count }} ta dars</div>
+        {% if subject.description %}
+        <p class="text-muted mt-2 mb-0" style="font-size:.78rem;line-height:1.5;">{{ subject.description|truncatechars:60 }}</p>
+        {% endif %}
+        <div class="arrow">
+          <i class="bi bi-arrow-right" style="color:var(--blue);"></i>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div style="width:80px;height:80px;background:var(--blue-bg);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <i class="bi bi-grid" style="font-size:2.2rem;color:var(--blue);"></i>
+    </div>
+    <h5 class="fw-700 mb-2">Fanlar hali qo'shilmagan</h5>
+    <p class="text-muted">Admin paneldan fanlar qo'shilgandan so'ng bu yerda ko'rinadi.</p>
+  </div>
+  {% endif %}
+
+</div>
+</div>
+{% endblock %}

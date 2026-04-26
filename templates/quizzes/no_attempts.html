@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Urinishlar tugadi — {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-xl-5">
+
+      <div class="card p-5 text-center">
+        {% if auto_passed %}
+        <!-- Avtomatik o'tkazildi, lekin ball berilmadi -->
+        <div style="width:72px;height:72px;background:var(--amber-bg);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-arrow-right-circle-fill" style="font-size:1.8rem;color:var(--amber);"></i>
+        </div>
+
+        <h4 class="fw-800 mb-2">Avtomatik o'tkazildi</h4>
+        <p class="text-muted mb-4" style="font-size:.9rem;line-height:1.7;">
+          Siz {{ completed_count }} marta urinib ko'rdingiz, lekin o'tish baliga yetishmadi.
+          Dars avtomatik tugatilgan deb belgilandi, ammo <strong>ball berilmadi</strong>.
+        </p>
+
+        <div class="p-3 rounded-3 mb-4" style="background:var(--amber-bg);">
+          <div class="d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-exclamation-triangle" style="color:var(--amber);"></i>
+            <span class="fw-600" style="font-size:.85rem;color:var(--amber);">Ball: 0</span>
+          </div>
+        </div>
+
+        {% else %}
+        <!-- O'tgan, lekin urinish tugagan -->
+        <div style="width:72px;height:72px;background:var(--blue-bg);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="bi bi-check-circle-fill" style="font-size:1.8rem;color:var(--blue);"></i>
+        </div>
+
+        <h4 class="fw-800 mb-2">Test yakunlandi</h4>
+        <p class="text-muted mb-4" style="font-size:.9rem;line-height:1.7;">
+          Siz bu testni allaqachon {{ completed_count }} marta ishladingiz. Maksimal urinishlar soni: {{ quiz.max_attempts }}.
+        </p>
+        {% endif %}
+
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          {% if quiz.quiz_type == 'lesson' and quiz.lesson %}
+          <a href="{% url 'lessons:detail' quiz.lesson.pk %}" class="btn btn-primary px-4">
+            <i class="bi bi-arrow-left me-1"></i>Darsga qaytish
+          </a>
+          {% endif %}
+          <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-primary px-4">
+            Dashboard
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Sertifikatlar — EduSphere{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+  <h4 class="fw-800 mb-4">Sertifikatlarim</h4>
+
+  {% if certificates %}
+  <div class="row g-4">
+    {% for cert in certificates %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card card-hover p-4" style="border-top:4px solid #D97706;">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div style="width:48px;height:48px;background:#FEF3C7;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#D97706;">
+            <i class="bi bi-award-fill"></i>
+          </div>
+          <div>
+            <div class="fw-700" style="font-size:.95rem;">{{ cert.quiz.title }}</div>
+            <div class="text-muted" style="font-size:.78rem;">{{ cert.issued_at|date:"d F Y" }}</div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-800" style="font-size:1.4rem;color:var(--blue);">{{ cert.score|floatformat:0 }}%</span>
+          <a href="{% url 'certificates:view' cert.uuid %}" class="btn btn-sm btn-outline-primary">Ko'rish</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-award" style="font-size:4rem;color:var(--blue-bg);"></i>
+    <h5 class="fw-700 mt-3 mb-2">Hali sertifikat yo'q</h5>
+    <p class="text-muted">Chorak testlarini 80% va undan yuqori ball bilan o'ting.</p>
+    <a href="{% url 'subjects:list' %}" class="btn btn-primary mt-2">Darslarni boshlash</a>
+  </div>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

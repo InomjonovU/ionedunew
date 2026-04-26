@@ -1,0 +1,13 @@
+Django==4.2.16
+psycopg2-binary==2.9.9
+djangorestframework==3.15.2
+celery==5.3.6
+redis==5.0.1
+anthropic==0.34.2
+Pillow==10.4.0
+gunicorn==22.0.0
+whitenoise==6.7.0
+django-environ==0.11.2
+python-slugify==8.0.4
+boto3==1.35.0
+django-storages==1.14.4

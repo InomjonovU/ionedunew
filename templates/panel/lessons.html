@@ -1,0 +1,118 @@
+{% extends 'panel/base.html' %}
+{% block title %}Darslar{% endblock %}
+{% block page_title %}Darslar{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+    <input name="q" class="form-control form-control-sm" placeholder="Sarlavha bo'yicha qidirish..."
+           value="{{ q }}" style="width:220px;">
+    <select name="subject" class="form-select form-select-sm" style="width:160px;">
+      <option value="">Barcha fanlar</option>
+      {% for s in subjects %}<option value="{{ s.pk }}" {% if subject_id == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+    </select>
+    <select name="grade" class="form-select form-select-sm" style="width:120px;">
+      <option value="">Barcha sinflar</option>
+      {% for g in grades %}<option value="{{ g }}" {% if grade == g|stringformat:'s' %}selected{% endif %}>{{ g }}-sinf</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Qidirish</button>
+    {% if q or subject_id or grade %}<a href="{% url 'panel:lessons' %}" class="btn btn-sm btn-secondary">Tozalash</a>{% endif %}
+  </form>
+  <a href="{% url 'panel:lesson_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus me-1"></i>Yangi dars
+  </a>
+</div>
+
+<div class="card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:36px;"></th>
+        <th>Dars</th>
+        <th>Fan / Sinf</th>
+        <th>Ko'rishlar</th>
+        <th>Test</th>
+        <th>Holat</th>
+        <th>Nashr</th>
+        <th>Amallar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lesson in lessons %}
+      <tr>
+        <td>
+          {% if lesson.thumbnail %}
+          <img src="{{ lesson.thumbnail.url }}" width="32" height="32" style="border-radius:6px;object-fit:cover;">
+          {% else %}
+          <div style="width:32px;height:32px;border-radius:6px;background:var(--blue-light);display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-play-fill" style="color:var(--blue);font-size:.8rem;"></i>
+          </div>
+          {% endif %}
+        </td>
+        <td style="max-width:240px;">
+          <div style="font-weight:600;font-size:.83rem;" class="text-truncate">{{ lesson.title }}</div>
+          <div style="font-size:.72rem;color:var(--slate-400);">{{ lesson.quarter }}</div>
+        </td>
+        <td>
+          <span class="badge badge-blue">{{ lesson.subject.name }}</span>
+          <div style="font-size:.72rem;color:var(--slate-400);margin-top:2px;">{{ lesson.grade }}-sinf</div>
+        </td>
+        <td>
+          <span style="font-weight:600;font-size:.83rem;">{{ lesson.view_count }}</span>
+        </td>
+        <td>
+          {% if lesson.quiz %}
+          <span class="badge badge-purple">{{ lesson.quiz.questions.count }} savol</span>
+          {% else %}
+          <span style="font-size:.75rem;color:var(--slate-300);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <button class="toggle-pill {% if lesson.is_published %}on{% else %}off{% endif %}"
+                  onclick="toggleLesson(this, {{ lesson.pk }})"
+                  title="{% if lesson.is_published %}Yashirish{% else %}Nashr etish{% endif %}"></button>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'panel:lesson_edit' lesson.pk %}" class="btn-icon" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'panel:lesson_delete' lesson.pk %}" class="d-inline"
+                  onsubmit="return confirm('Darsni o\'chirishni tasdiqlaysizmi?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-icon" style="color:var(--red);" title="O'chirish">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--slate-400);">
+          <i class="bi bi-play-circle" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+          Darslar topilmadi
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleLesson(btn, pk) {
+  const res = await fetch(`/panel/content/lessons/${pk}/toggle/`, {
+    method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}
+  });
+  if (res.ok) {
+    const d = await res.json();
+    btn.classList.toggle('on', d.published);
+    btn.classList.toggle('off', !d.published);
+  }
+}
+</script>
+{% endblock %}

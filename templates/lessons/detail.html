@@ -1,0 +1,333 @@
+{% extends 'base.html' %}
+{% block title %}{{ lesson.title }} — EduSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+  .video-wrap {
+    position: relative; padding-top: 56.25%;
+    background: #000; border-radius: var(--radius);
+    overflow: hidden; box-shadow: var(--shadow-md);
+  }
+  .video-wrap iframe, .video-wrap video { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  .lesson-sidebar { position: sticky; top: 80px; }
+
+  .lesson-nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--dark);
+    transition: background .15s;
+    border: 1px solid transparent;
+  }
+  .lesson-nav-item:hover { background: var(--light); border-color: var(--border); color: var(--blue); }
+  .lesson-nav-item.active { background: var(--blue-bg); border-color: var(--blue-light); color: var(--blue); }
+  .lesson-nav-item.completed { color: var(--dark); }
+  .lesson-nav-item.locked { opacity: .5; pointer-events: none; }
+
+  .lesson-num {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  .comment-item {
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--light);
+    border: 1px solid var(--border);
+  }
+  .comment-avatar {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 800; flex-shrink: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb" style="font-size:.82rem;background:none;padding:0;">
+      <li class="breadcrumb-item"><a href="{% url 'subjects:list' %}" class="text-decoration-none text-muted">Fanlar</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'subjects:detail' lesson.subject.slug %}" class="text-decoration-none text-muted">{{ lesson.subject.name }}</a></li>
+      <li class="breadcrumb-item active text-muted">{{ lesson.title|truncatechars:45 }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+
+    <!-- MAIN CONTENT -->
+    <div class="col-lg-8">
+
+      <!-- Video Player (YouTube) -->
+      <div class="video-wrap mb-4">
+        {% if lesson.youtube_embed_url %}
+          <iframe src="{{ lesson.youtube_embed_url }}"
+                  title="{{ lesson.title }}"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerpolicy="strict-origin-when-cross-origin"
+                  allowfullscreen></iframe>
+        {% else %}
+          <div class="d-flex flex-column align-items-center justify-content-center text-white text-center" style="position:absolute;inset:0;gap:12px;">
+            <i class="bi bi-camera-video-off" style="font-size:3rem;opacity:.6;"></i>
+            <div style="font-size:.9rem;opacity:.85;">Bu dars uchun video hali yuklanmagan</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Sarlavha + amallar -->
+      <div class="card p-4 mb-4">
+        <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
+              <span class="badge-blue px-3 py-1 rounded-pill" style="font-size:.75rem;">
+                <i class="bi {{ lesson.subject.icon }} me-1"></i>{{ lesson.subject.name }}
+              </span>
+              <span class="badge-gray px-3 py-1 rounded-pill" style="font-size:.75rem;">
+                <i class="bi bi-mortarboard me-1"></i>{{ lesson.grade }}-sinf
+              </span>
+              {% if lesson.duration_minutes %}
+              <span class="badge-gray px-3 py-1 rounded-pill" style="font-size:.75rem;">
+                <i class="bi bi-clock me-1"></i>{{ lesson.duration_minutes }} daq
+              </span>
+              {% endif %}
+            </div>
+            <h4 class="fw-800 mb-0" style="letter-spacing:-.2px;">{{ lesson.title }}</h4>
+          </div>
+
+          <div class="d-flex gap-2 flex-shrink-0 flex-wrap">
+            {% if lesson.pdf_conspect %}
+            <a href="{{ lesson.pdf_conspect.url }}" download
+               class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+              <i class="bi bi-file-pdf"></i>PDF
+            </a>
+            {% endif %}
+
+            {% if is_viewed %}
+            <span class="btn btn-sm d-flex align-items-center gap-1"
+                  style="background:var(--blue);color:#fff;border:none;cursor:default;">
+              <i class="bi bi-check-circle-fill"></i>Tugallandi
+            </span>
+            {% else %}
+            <button id="completeBtn" onclick="markComplete({{ lesson.pk }})"
+                    class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+              <i class="bi bi-check-circle"></i>Tugatdim
+            </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Tavsif -->
+      {% if lesson.description %}
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-3 d-flex align-items-center gap-2">
+          <i class="bi bi-info-circle" style="color:var(--blue);"></i>Dars haqida
+        </h6>
+        <p class="text-muted mb-0" style="font-size:.92rem;line-height:1.8;">{{ lesson.description }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Izohlar -->
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-4 d-flex align-items-center gap-2">
+          <i class="bi bi-chat-dots" style="color:var(--blue);"></i>Izohlar
+          <span class="badge-gray px-2 py-1 rounded-pill" style="font-size:.72rem;">{{ comments|length }}</span>
+        </h6>
+
+        <!-- Izoh yozish formasi -->
+        <form method="post" action="{% url 'lessons:add_comment' lesson.pk %}" class="mb-4">
+          {% csrf_token %}
+          <div class="d-flex gap-3">
+            <div class="comment-avatar mt-1">
+              {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            </div>
+            <div class="flex-grow-1">
+              <textarea name="text" class="form-control mb-2" rows="2"
+                        placeholder="Izoh yozing..." required
+                        style="resize:none;"></textarea>
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i class="bi bi-send me-1"></i>Yuborish
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <!-- Izohlar ro'yxati -->
+        {% if comments %}
+        <div class="d-flex flex-column gap-3">
+          {% for comment in comments %}
+          <div class="comment-item">
+            <div class="d-flex align-items-start gap-3">
+              <div class="comment-avatar">
+                {% if comment.user.avatar %}
+                <img src="{{ comment.user.avatar.url }}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
+                {% else %}
+                {{ comment.user.first_name|first|upper }}{{ comment.user.last_name|first|upper }}
+                {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="fw-600" style="font-size:.85rem;">{{ comment.user.get_full_name|default:comment.user.username }}</span>
+                  <span class="text-muted" style="font-size:.72rem;">{{ comment.created_at|timesince }} oldin</span>
+                </div>
+                <p class="mb-0 text-muted" style="font-size:.88rem;line-height:1.7;">{{ comment.text }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-3">
+          <i class="bi bi-chat-dots text-muted" style="font-size:1.5rem;opacity:.3;"></i>
+          <p class="text-muted mt-2 mb-0" style="font-size:.85rem;">Hali izoh yo'q. Birinchi bo'lib yozing!</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="col-lg-4">
+      <div class="lesson-sidebar">
+
+        <!-- Test -->
+        {% if quiz_info %}
+        <div class="card p-4 mb-4" style="border-color:rgba(37,99,235,.2);background:linear-gradient(135deg,#fff,var(--blue-bg));">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div style="width:44px;height:44px;background:var(--blue);border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(37,99,235,.3);">
+              <i class="bi bi-clipboard-check-fill text-white" style="font-size:1.1rem;"></i>
+            </div>
+            <div>
+              <div class="fw-700">Dars testi</div>
+              <div class="text-muted" style="font-size:.8rem;">{{ quiz_info.quiz.pass_score }}% o'tish bali</div>
+            </div>
+          </div>
+
+          {% if quiz_info.passed %}
+          <div class="p-3 rounded-3 mb-3 d-flex align-items-center gap-2" style="background:var(--blue-bg);">
+            <i class="bi bi-check-circle-fill" style="color:var(--blue);"></i>
+            <span class="fw-600" style="font-size:.85rem;color:var(--blue);">Test o'tildi!</span>
+          </div>
+          {% else %}
+          <div class="d-flex flex-column gap-2 mb-3" style="font-size:.82rem;">
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Urinishlar</span>
+              <strong>{{ quiz_info.attempt_count }} / {{ quiz_info.quiz.max_attempts|default:"∞" }}</strong>
+            </div>
+            {% if quiz_info.attempts_left is not None %}
+            <div class="d-flex justify-content-between">
+              <span class="text-muted">Qolgan</span>
+              <strong style="color:{% if quiz_info.attempts_left > 0 %}var(--blue){% else %}var(--red){% endif %};">{{ quiz_info.attempts_left }}</strong>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if quiz_info.attempts_left is None or quiz_info.attempts_left > 0 %}
+          <a href="{% url 'quizzes:start' quiz_info.quiz.pk %}"
+             class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+             style="background:var(--blue);color:#fff;border:none;font-weight:700;border-radius:10px;padding:12px;box-shadow:0 4px 16px rgba(37,99,235,.3);">
+            <i class="bi bi-play-fill"></i>Testni boshlash
+          </a>
+          {% else %}
+          <div class="p-3 rounded-3 text-center" style="background:var(--amber-bg);">
+            <i class="bi bi-exclamation-triangle" style="color:var(--amber);"></i>
+            <span class="fw-600" style="font-size:.82rem;color:var(--amber);">Urinishlar tugadi</span>
+          </div>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Holat -->
+        <div class="card p-4 mb-4">
+          <h6 class="fw-700 mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-fill" style="color:var(--blue);"></i>Holat
+          </h6>
+          <div class="d-flex align-items-center gap-3 p-3 rounded-3"
+               style="background:{% if is_viewed %}var(--blue-bg){% else %}var(--light){% endif %};">
+            <i class="bi bi-{% if is_viewed %}check-circle-fill{% else %}circle{% endif %}"
+               style="font-size:1.2rem;color:{% if is_viewed %}var(--blue){% else %}var(--gray){% endif %};"></i>
+            <div>
+              <div class="fw-600" style="font-size:.88rem;">{% if is_viewed %}Dars tugallandi{% else %}Ko'rilmagan{% endif %}</div>
+              <div style="font-size:.76rem;color:var(--gray);">{% if is_viewed %}Siz bu darsni tugatdingiz{% else %}Darsni tomosha qiling{% endif %}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shu chorakdagi darslar -->
+        {% if lessons_with_status %}
+        <div class="card p-4">
+          <h6 class="fw-700 mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-list-ol" style="color:var(--blue);"></i>Chorak darslari
+          </h6>
+          <div class="d-flex flex-column gap-1">
+            {% for item in lessons_with_status %}
+            {% if item.can_access %}
+            <a href="{% url 'lessons:detail' item.lesson.pk %}"
+               class="lesson-nav-item {% if item.is_current %}active{% elif item.completed %}completed{% endif %}">
+            {% else %}
+            <div class="lesson-nav-item locked">
+            {% endif %}
+              <div class="lesson-num"
+                   style="background:{% if item.is_current %}var(--blue){% elif item.completed %}var(--blue-bg){% else %}var(--light){% endif %};color:{% if item.is_current %}#fff{% elif item.completed %}var(--blue){% else %}var(--gray){% endif %};">
+                {% if item.completed and not item.is_current %}
+                <i class="bi bi-check-lg"></i>
+                {% elif not item.can_access %}
+                <i class="bi bi-lock-fill" style="font-size:.7rem;"></i>
+                {% else %}
+                {{ item.number }}
+                {% endif %}
+              </div>
+              <span class="text-truncate" style="font-size:.85rem;{% if item.is_current %}font-weight:600;{% endif %}">{{ item.lesson.title }}</span>
+              {% if item.is_current %}
+              <i class="bi bi-chevron-right ms-auto flex-shrink-0" style="font-size:.7rem;"></i>
+              {% endif %}
+            {% if item.can_access %}
+            </a>
+            {% else %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+async function markComplete(pk) {
+  const btn = document.getElementById('completeBtn');
+  btn.disabled = true;
+  const res = await fetch(`/lessons/${pk}/complete/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrfToken }
+  });
+  if (res.ok) {
+    btn.className = 'btn btn-sm d-flex align-items-center gap-1';
+    btn.style.background = 'var(--blue)';
+    btn.style.color = '#fff';
+    btn.style.border = 'none';
+    btn.style.cursor = 'default';
+    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i>Tugallandi';
+    btn.onclick = null;
+  }
+  btn.disabled = false;
+}
+</script>
+{% endblock %}

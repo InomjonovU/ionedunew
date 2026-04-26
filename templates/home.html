@@ -1,0 +1,458 @@
+{% extends 'base.html' %}
+{% block title %}EduSphere — 1-11 sinf uchun raqamli ta'lim platformasi{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+    min-height: 90vh;
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+    padding: 80px 0;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 70% 40%, rgba(99,102,241,.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 20% 60%, rgba(37,99,235,.1) 0%, transparent 50%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(99,102,241,.15);
+    border: 1px solid rgba(99,102,241,.3);
+    color: #A5B4FC;
+    border-radius: 100px; padding: 6px 16px;
+    font-size: .82rem; font-weight: 600;
+  }
+  .hero-tag .dot-live { width:7px;height:7px;background:#A5B4FC;border-radius:50%;animation:blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .hero h1 {
+    font-size: clamp(2.4rem, 5.5vw, 4rem);
+    font-weight: 800; color: #fff;
+    line-height: 1.1; letter-spacing: -.5px;
+  }
+  .hero h1 .gradient-text {
+    background: linear-gradient(135deg, #60A5FA, #818CF8, #C084FC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub { color: #94A3B8; font-size: 1.08rem; line-height: 1.7; max-width: 500px; }
+  .hero-btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #2563EB, #6366F1);
+    color: #fff; border: none; border-radius: 12px;
+    padding: 14px 28px; font-weight: 700; font-size: 1rem;
+    box-shadow: 0 8px 32px rgba(99,102,241,.4);
+    transition: all .2s; text-decoration: none;
+  }
+  .hero-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,.5); color: #fff; }
+  .hero-btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    color: #E2E8F0; border-radius: 12px;
+    padding: 14px 28px; font-weight: 600; font-size: 1rem;
+    transition: all .2s; text-decoration: none;
+  }
+  .hero-btn-secondary:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+  /* HERO FLOATING CARDS */
+  .hero-float { position: relative; }
+  .float-card {
+    background: rgba(255,255,255,.07);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px; padding: 20px;
+  }
+  .float-card .fc-num { font-family:'Sora',sans-serif; font-weight: 800; font-size: 1.9rem; color: #fff; }
+  .float-card .fc-lbl { color: #94A3B8; font-size: .8rem; margin-top: 2px; }
+  @keyframes floatAnim { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .fl-1 { animation: floatAnim 5s ease-in-out infinite; }
+  .fl-2 { animation: floatAnim 5s 1.2s ease-in-out infinite; }
+  .fl-3 { animation: floatAnim 5s 2.4s ease-in-out infinite; }
+
+  /* STATS */
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .stat-num { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 2.4rem; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* SUBJECTS */
+  .subj-card {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-decoration: none;
+    transition: all .2s;
+  }
+  .subj-card:hover { border-color: var(--blue); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+
+  /* FEATURES */
+  .feature-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    height: 100%;
+    transition: all .2s;
+  }
+  .feature-card:hover { border-color: var(--blue-light); box-shadow: var(--shadow-md); transform: translateY(-3px); }
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 18px;
+  }
+
+  /* HOW IT WORKS */
+  .step-circle {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), #6366F1);
+    color: #fff; font-weight: 800; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(37,99,235,.3);
+    margin: 0 auto 16px;
+  }
+
+  /* TESTIMONIALS */
+  .testi-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .testi-stars { color: #F59E0B; font-size: .9rem; }
+
+  /* CTA SECTION */
+  .cta-section {
+    background: linear-gradient(135deg, #1E40AF 0%, #4F46E5 50%, #7C3AED 100%);
+    border-radius: 24px;
+    padding: 64px 48px;
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="container position-relative" style="z-index:1;">
+    <div class="row align-items-center g-5">
+
+      <div class="col-lg-6">
+        <div class="hero-tag mb-4 fade-up">
+          <span class="dot-live"></span>
+          O'zbekiston #1 ta'lim platformasi
+        </div>
+        <h1 class="mb-4 fade-up-2">
+          Ta'limni <span class="gradient-text">aqlli</span><br>va qiziqarli qiling
+        </h1>
+        <p class="hero-sub mb-5 fade-up-3">
+          1–11 sinf uchun video darslar, testlar va kutubxona. Barcha fanlar, bir joyda. Bepul boshlang.
+        </p>
+        <div class="d-flex gap-3 flex-wrap fade-up-4">
+          <a href="{% url 'accounts:register' %}" class="hero-btn-primary">
+            Bepul boshlash <i class="bi bi-arrow-right"></i>
+          </a>
+          <a href="{% url 'subjects:list' %}" class="hero-btn-secondary">
+            <i class="bi bi-play-circle"></i>Fanlarni ko'rish
+          </a>
+        </div>
+        <div class="d-flex align-items-center gap-4 mt-5 fade-up-4" style="border-top:1px solid rgba(255,255,255,.08);padding-top:24px;">
+          <div>
+            <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;">{{ stats.students_count }}</div>
+            <div style="color:#94A3B8;font-size:.8rem;">O'quvchi</div>
+          </div>
+          <div style="width:1px;height:36px;background:rgba(255,255,255,.1);"></div>
+          <div>
+            <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;">{{ stats.video_lessons_count }}</div>
+            <div style="color:#94A3B8;font-size:.8rem;">Video dars</div>
+          </div>
+          <div style="width:1px;height:36px;background:rgba(255,255,255,.1);"></div>
+          <div>
+            <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;">{{ stats.subjects_count }}</div>
+            <div style="color:#94A3B8;font-size:.8rem;">Fan</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+        <div class="hero-float" style="width:100%;max-width:440px;">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="float-card fl-1">
+                <div style="width:36px;height:36px;background:rgba(37,99,235,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                  <i class="bi bi-play-circle-fill" style="color:#60A5FA;font-size:1.1rem;"></i>
+                </div>
+                <div class="fc-num">{{ stats.video_lessons_count }}</div>
+                <div class="fc-lbl">Video dars</div>
+              </div>
+              <div class="float-card fl-2 mt-3">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:36px;height:36px;background:rgba(124,58,237,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-book-fill" style="color:#A78BFA;font-size:1rem;"></i>
+                  </div>
+                  <div>
+                    <div style="color:#fff;font-size:.85rem;font-weight:700;">Kutubxona</div>
+                    <div class="fc-lbl" style="font-size:.73rem;">Bepul materiallar</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 pt-4">
+              <div class="float-card fl-3">
+                <div style="width:36px;height:36px;background:rgba(16,185,129,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                  <i class="bi bi-award-fill" style="color:#34D399;font-size:1.1rem;"></i>
+                </div>
+                <div class="fc-num">{{ stats.certificates_count }}</div>
+                <div class="fc-lbl">Sertifikat berildi</div>
+              </div>
+              <div class="float-card fl-1 mt-3" style="animation-delay:.8s;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:36px;height:36px;background:rgba(245,158,11,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-trophy-fill" style="color:#FCD34D;font-size:1rem;"></i>
+                  </div>
+                  <div>
+                    <div style="color:#fff;font-size:.85rem;font-weight:700;">Reyting tizimi</div>
+                    <div class="fc-lbl" style="font-size:.73rem;">Sinf bo'yicha</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ──────────────────────────────────────────────── -->
+<section class="py-5" style="background:#fff;border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="row g-4 justify-content-center">
+      <div class="col-6 col-md-3">
+        <div class="stat-card fade-up">
+          <div class="stat-num">{{ stats.subjects_count }}</div>
+          <div class="text-muted" style="font-size:.88rem;font-weight:500;">Fan</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card fade-up-2">
+          <div class="stat-num">{{ stats.video_lessons_count }}</div>
+          <div class="text-muted" style="font-size:.88rem;font-weight:500;">Video dars</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card fade-up-3">
+          <div class="stat-num">{{ stats.active_students_count }}</div>
+          <div class="text-muted" style="font-size:.88rem;font-weight:500;">Faol o'quvchi</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card fade-up-4">
+          <div class="stat-num">{{ stats.average_rating }}★</div>
+          <div class="text-muted" style="font-size:.88rem;font-weight:500;">O'rtacha baho</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FANLAR ──────────────────────────────────────────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-badge mb-3"><i class="bi bi-grid-3x3-gap"></i>Barcha fanlar</div>
+      <h2 class="section-title mb-3">Barcha fanlar bir joyda</h2>
+      <p class="section-subtitle">1–11 sinf o'quvchilari uchun maktab dasturidagi barcha fanlar bo'yicha professional darslar.</p>
+    </div>
+    <div class="row g-3">
+      {% for subj_data in subjects_preview %}
+      {% with s=subj_data.subject %}
+      <div class="col-6 col-md-4 col-lg-3 fade-up">
+        <a href="{% url 'subjects:detail' s.slug %}" class="subj-card">
+          <div class="d-flex align-items-center gap-3">
+            <div class="subj-icon subj-{{ s.color }}">
+              <i class="bi {{ s.icon }}"></i>
+            </div>
+            <div>
+              <div class="fw-700" style="font-size:.95rem;color:var(--dark);">{{ s.name }}</div>
+              <div class="text-muted" style="font-size:.78rem;margin-top:2px;">{{ subj_data.lesson_count }} dars</div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endwith %}
+      {% empty %}
+      <div class="col-12 text-center py-4">
+        <p class="text-muted">Hozircha fanlar qo'shilmagan.</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-5">
+      <a href="{% url 'subjects:list' %}" class="btn btn-outline-primary px-5 py-2">
+        Barcha fanlarni ko'rish <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-badge mb-3"><i class="bi bi-stars"></i>Imkoniyatlar</div>
+      <h2 class="section-title mb-3">Nima uchun EduSphere?</h2>
+      <p class="section-subtitle">Zamonaviy ta'lim uchun kerakli barcha vositalar bitta platformada.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4 fade-up">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--blue-bg);color:var(--blue);">
+            <i class="bi bi-play-circle-fill"></i>
+          </div>
+          <h5 class="fw-700 mb-2">HD Video darslar</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">YouTube orqali yuqori sifatli video darslar — kompyuter, planshet yoki telefonda uzluksiz tomosha qiling.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up-2">
+        <div class="feature-card" style="border-color:var(--purple-bg);">
+          <div class="feature-icon" style="background:var(--purple-bg);color:var(--purple);">
+            <i class="bi bi-chat-dots-fill"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Izohlar tizimi</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">Har bir darsga izoh yozing, savollar bering va boshqa o'quvchilar bilan tajriba almashing.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up-3">
+        <div class="feature-card" style="border-color:var(--blue-bg);">
+          <div class="feature-icon" style="background:var(--blue-bg);color:var(--blue);">
+            <i class="bi bi-clipboard-check-fill"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Testlar va sertifikatlar</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">Dars va chorak testlari. 70%+ ball to'plasangiz keyingi darsga o'tasiz. Sertifikat olish imkoniyati.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up">
+        <div class="feature-card" style="border-color:var(--amber-bg);">
+          <div class="feature-icon" style="background:var(--amber-bg);color:var(--amber);">
+            <i class="bi bi-book-fill"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Kutubxona</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">PDF kitoblar, audio kitoblar, darsliklar va qo'shimcha materiallar. Yuklab oling va o'qing.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up-2">
+        <div class="feature-card">
+          <div class="feature-icon" style="background:var(--blue-bg);color:var(--blue);">
+            <i class="bi bi-trophy-fill"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Reyting tizimi</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">Sinf ichida va umumiy reyting. Testlardan ball to'plab, top o'rinlarga chiqing. Hamqishloqlar bilan raqobat.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 fade-up-3">
+        <div class="feature-card" style="border-color:var(--purple-bg);">
+          <div class="feature-icon" style="background:var(--purple-bg);color:var(--purple);">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <h5 class="fw-700 mb-2">Progress tahlili</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;line-height:1.7;">Har bir fan bo'yicha progress va test natijalari. O'z o'sishingizni kuzatib boring.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── QANDAY ISHLAYDI ────────────────────────────────────── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-badge mb-3"><i class="bi bi-map"></i>Qanday ishlaydi</div>
+      <h2 class="section-title mb-3">4 qadamda boshlang</h2>
+      <p class="section-subtitle">EduSphere bilan o'qishni boshlash juda oson.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3 text-center fade-up">
+        <div class="card p-4 h-100">
+          <div class="step-circle">1</div>
+          <h5 class="fw-700 mb-2">Ro'yxatdan o'ting</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;">Bepul hisob yarating. Sinfingizni va tilingizni tanlang.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3 text-center fade-up-2">
+        <div class="card p-4 h-100">
+          <div class="step-circle">2</div>
+          <h5 class="fw-700 mb-2">Fan tanlang</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;">Sinfingizga mos fanlarni ko'ring va darslarni tanlang.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3 text-center fade-up-3">
+        <div class="card p-4 h-100">
+          <div class="step-circle">3</div>
+          <h5 class="fw-700 mb-2">Dars ko'ring</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;">Video darsni tomosha qiling va izoh qoldiring.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3 text-center fade-up-4">
+        <div class="card p-4 h-100">
+          <div class="step-circle">4</div>
+          <h5 class="fw-700 mb-2">Test toping</h5>
+          <p class="text-muted mb-0" style="font-size:.9rem;">Testni yeching, sertifikat oling va reytingda yuqorilang!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div class="cta-section position-relative">
+      <div class="row align-items-center g-4 position-relative" style="z-index:1;">
+        <div class="col-lg-7 text-center text-lg-start">
+          <h2 class="fw-800 text-white mb-3" style="font-size:2rem;">Hoziroq boshlang — <span style="color:#A5B4FC;">bepul!</span></h2>
+          <p style="color:rgba(255,255,255,.75);font-size:1rem;margin-bottom:0;">Ro'yxatdan o'ting va birinchi darsni ko'ring. Kredit karta kerak emas.</p>
+        </div>
+        <div class="col-lg-5 text-center text-lg-end">
+          <div class="d-flex gap-3 justify-content-center justify-content-lg-end flex-wrap">
+            <a href="{% url 'accounts:register' %}" class="btn btn-lg px-5" style="background:#fff;color:var(--blue);font-weight:800;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);">
+              Bepul boshlash <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+            <a href="{% url 'subjects:list' %}" class="btn btn-lg px-4" style="background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:12px;">
+              Ko'proq bilish
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

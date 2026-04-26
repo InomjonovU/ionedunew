@@ -1,0 +1,117 @@
+{% extends 'panel/base.html' %}
+{% block title %}Testlar{% endblock %}
+{% block page_title %}Testlar{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+    <select name="subject" class="form-select form-select-sm" style="width:160px;">
+      <option value="">Barcha fanlar</option>
+      {% for s in subjects %}<option value="{{ s.pk }}" {% if subject_id == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+    </select>
+    <select name="type" class="form-select form-select-sm" style="width:150px;">
+      <option value="">Barcha turlar</option>
+      <option value="lesson" {% if quiz_type == 'lesson' %}selected{% endif %}>Dars testi</option>
+      <option value="quarter" {% if quiz_type == 'quarter' %}selected{% endif %}>Chorak testi</option>
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+    {% if subject_id or quiz_type %}<a href="{% url 'panel:quizzes' %}" class="btn btn-sm btn-secondary">Tozalash</a>{% endif %}
+  </form>
+  <div class="d-flex gap-2">
+    <a href="{% url 'panel:quiz_create' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus me-1"></i>Yangi test
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Test sarlavhasi</th>
+        <th>Tur</th>
+        <th>Savollar</th>
+        <th>Urinishlar</th>
+        <th>O'tish bali</th>
+        <th>Vaqt</th>
+        <th>Nashr</th>
+        <th>Amallar</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for quiz in quizzes %}
+      <tr>
+        <td style="max-width:220px;">
+          <div style="font-weight:600;font-size:.83rem;" class="text-truncate">{{ quiz.title }}</div>
+          {% if quiz.lesson %}<div style="font-size:.72rem;color:var(--slate-400);">{{ quiz.lesson.title|truncatechars:35 }}</div>{% endif %}
+          {% if quiz.quarter %}<div style="font-size:.72rem;color:var(--slate-400);">{{ quiz.quarter }}</div>{% endif %}
+        </td>
+        <td>
+          {% if quiz.quiz_type == 'quarter' %}
+          <span class="badge badge-green">Chorak</span>
+          {% else %}
+          <span class="badge badge-blue">Dars</span>
+          {% endif %}
+        </td>
+        <td><span style="font-weight:600;">{{ quiz.question_count }}</span></td>
+        <td>
+          <div style="font-size:.83rem;">{{ quiz.attempt_count }}</div>
+          <div style="font-size:.7rem;color:var(--blue);">{{ quiz.pass_count }} o'tdi</div>
+        </td>
+        <td>{{ quiz.pass_score }}%</td>
+        <td style="font-size:.8rem;color:var(--slate-500);">
+          {% if quiz.time_limit %}{{ quiz.time_limit }} daq{% else %}—{% endif %}
+        </td>
+        <td>
+          <button class="toggle-pill {% if quiz.is_published %}on{% else %}off{% endif %}"
+                  onclick="toggleQuiz(this, {{ quiz.pk }})"></button>
+        </td>
+        <td>
+          <div class="d-flex gap-1">
+            <a href="{% url 'panel:quiz_edit' quiz.pk %}" class="btn-icon" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            {% if quiz.lesson %}
+            <a href="{% url 'panel:lesson_edit' quiz.lesson.pk %}" class="btn-icon" title="Darsga o'tish" style="color:var(--blue);">
+              <i class="bi bi-play-circle"></i>
+            </a>
+            {% endif %}
+            <form method="post" action="{% url 'panel:quiz_delete' quiz.pk %}" class="d-inline"
+                  onsubmit="return confirm('Testni o\'chirishni tasdiqlaysizmi?')">
+              {% csrf_token %}
+              <button type="submit" class="btn-icon" style="color:var(--red);" title="O'chirish">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--slate-400);">
+          <i class="bi bi-patch-question" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+          Testlar topilmadi
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function toggleQuiz(btn, pk) {
+  const res = await fetch(`/panel/content/quizzes/${pk}/toggle/`, {
+    method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}
+  });
+  if (res.ok) {
+    const d = await res.json();
+    btn.classList.toggle('on', d.published);
+    btn.classList.toggle('off', !d.published);
+  }
+}
+</script>
+{% endblock %}

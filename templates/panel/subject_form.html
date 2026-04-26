@@ -1,0 +1,45 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Fan tahrirlash{% else %}Yangi fan{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'panel:subjects' %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Fanlar
+  </a>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card p-4">
+      <div class="section-title">Fan ma'lumotlari</div>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {% if field.html_name == 'is_active' %}
+          <div class="d-flex align-items-center gap-2">
+            {{ field }}
+            <span style="font-size:.83rem;">Faol ko'rsatish</span>
+          </div>
+          {% else %}
+          {{ field }}
+          {% endif %}
+          {% for e in field.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+          {% if field.help_text %}<div style="font-size:.72rem;color:var(--slate-400);margin-top:2px;">{{ field.help_text }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Yaratish{% endif %}
+          </button>
+          <a href="{% url 'panel:subjects' %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

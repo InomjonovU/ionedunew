@@ -1,0 +1,159 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Test tahrirlash{% else %}Yangi test{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.question-card {
+  background:#fff; border:1px solid var(--slate-200); border-radius:9px; padding:14px 16px; margin-bottom:8px;
+  transition:box-shadow .13s;
+}
+.question-card:hover { box-shadow:0 2px 12px rgba(0,0,0,.06); }
+.q-num {
+  width:24px; height:24px; border-radius:6px; background:var(--blue);
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:.72rem; font-weight:700; flex-shrink:0;
+}
+.choice-tag {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:4px; font-size:.72rem; font-weight:500;
+  background:var(--slate-100); color:var(--slate-600); margin:2px 2px 2px 0;
+}
+.choice-tag.correct { background:#D1FAE5; color:#065F46; }
+.sticky-form { position:sticky; top:72px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'panel:quizzes' %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Testlar
+  </a>
+  {% if object %}
+  <span style="color:var(--slate-300);">/</span>
+  <span style="font-size:.83rem;color:var(--slate-600);">{{ object.title|truncatechars:40 }}</span>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+
+  <!-- ── Test settings form ── -->
+  <div class="col-lg-4">
+    <div class="sticky-form">
+      <div class="card p-4 mb-4">
+        <div class="section-title">Test sozlamalari</div>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label class="form-label">{{ field.label }}</label>
+            {% if field.html_name == 'is_published' %}
+            <div class="d-flex align-items-center gap-2">
+              {{ field }}
+              <span style="font-size:.83rem;">{{ field.label }}</span>
+            </div>
+            {% else %}
+            {{ field }}
+            {% endif %}
+            {% for e in field.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+            {% if field.html_name == 'time_limit' %}
+            <div style="font-size:.7rem;color:var(--slate-400);margin-top:2px;">0 = vaqt chegarasi yo'q</div>
+            {% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary w-100 mt-2">
+            <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Yaratish{% endif %}
+          </button>
+          <a href="{% url 'panel:quizzes' %}" class="btn btn-secondary w-100 mt-2">Bekor qilish</a>
+        </form>
+      </div>
+
+      {% if object %}
+      <div class="card p-4" style="border-color:var(--red-light);">
+        <div style="font-size:.78rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Xavfli zona</div>
+        <form method="post" action="{% url 'panel:quiz_delete' object.pk %}"
+              onsubmit="return confirm('«{{ object.title }}» testini o\'chirishni tasdiqlaysizmi?')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm w-100" style="background:var(--red-light);color:var(--red);border:1px solid #FCA5A5;">
+            <i class="bi bi-trash me-1"></i>Testni o'chirish
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── Questions ── -->
+  <div class="col-lg-8">
+    {% if object %}
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h6 style="font-weight:700;font-size:.95rem;margin:0;">Savollar</h6>
+        <div style="font-size:.72rem;color:var(--slate-400);margin-top:2px;">{{ questions|length }} ta savol</div>
+      </div>
+      <a href="{% url 'panel:question_create' object.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus me-1"></i>Savol qo'shish
+      </a>
+    </div>
+
+    {% if questions %}
+    {% for q in questions %}
+    <div class="question-card">
+      <div class="d-flex align-items-start gap-3">
+        <div class="q-num">{{ forloop.counter }}</div>
+        <div class="flex-grow-1 overflow-hidden">
+          <div style="font-weight:500;font-size:.85rem;margin-bottom:6px;line-height:1.4;">{{ q.text }}</div>
+          {% if q.image %}
+          <img src="{{ q.image.url }}" style="max-height:60px;border-radius:5px;margin-bottom:6px;border:1px solid var(--slate-200);">
+          {% endif %}
+          <div>
+            {% for choice in q.choices.all %}
+            <span class="choice-tag {% if choice.is_correct %}correct{% endif %}">
+              {% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% else %}D{% endif %}.
+              {% if choice.is_correct %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+              {{ choice.text|truncatechars:35 }}
+            </span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="d-flex gap-1 flex-shrink-0">
+          <a href="{% url 'panel:question_edit' q.pk %}" class="btn-icon" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+          <form method="post" action="{% url 'panel:question_delete' q.pk %}"
+                onsubmit="return confirm('Savolni o\'chirishni tasdiqlaysizmi?')" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn-icon" style="color:var(--red);" title="O'chirish"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="text-center mt-4">
+      <a href="{% url 'panel:question_create' object.pk %}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus me-1"></i>Yana savol qo'shish
+      </a>
+    </div>
+
+    {% else %}
+    <div class="card p-5 text-center" style="border-style:dashed;">
+      <i class="bi bi-question-circle" style="font-size:3rem;color:var(--slate-200);"></i>
+      <div style="font-weight:600;margin-top:12px;font-size:.9rem;">Savollar hali qo'shilmagan</div>
+      <div style="color:var(--slate-400);font-size:.82rem;margin-top:4px;">Har bir savolga A/B/C/D variantlar qo'shing</div>
+      <a href="{% url 'panel:question_create' object.pk %}" class="btn btn-primary btn-sm mt-4">
+        <i class="bi bi-plus me-1"></i>Birinchi savol qo'shish
+      </a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="card p-5 text-center" style="border-style:dashed;">
+      <i class="bi bi-info-circle" style="font-size:2.5rem;color:var(--slate-200);"></i>
+      <div style="color:var(--slate-400);margin-top:12px;font-size:.85rem;">Testni yaratgandan keyin savollar qo'shishingiz mumkin</div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}

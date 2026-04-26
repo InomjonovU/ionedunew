@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Kutubxona — EduSphere{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-800 mb-1">Kutubxona</h4>
+      <p class="text-muted mb-0" style="font-size:.88rem;">PDF kitoblar, audio kitoblar, darsliklar va qo'shimcha materiallar</p>
+    </div>
+  </div>
+
+  <!-- Filterlar -->
+  <div class="card p-3 mb-4">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        {{ form.q }}
+      </div>
+      <div class="col-md-3">
+        <select name="subject" class="form-select form-select-sm">
+          <option value="">Barcha fanlar</option>
+          {% for s in subjects %}
+          <option value="{{ s.pk }}" {% if request.GET.subject == s.pk|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        {{ form.grade }}
+      </div>
+      <div class="col-md-2">
+        {{ form.item_type }}
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Materiallar -->
+  <div class="row g-3">
+    {% for item in items %}
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <a href="{% url 'library:detail' item.pk %}" class="text-decoration-none">
+        <div class="card card-hover h-100">
+          {% if item.cover_image %}
+            <img src="{{ item.cover_image.url }}" class="card-img-top" style="height:140px;object-fit:cover;">
+          {% else %}
+            <div style="height:140px;background:{% if item.item_type == 'pdf_book' %}var(--blue-bg){% elif item.item_type == 'audio_book' %}var(--purple-bg){% elif item.item_type == 'textbook' %}var(--purple-bg){% else %}var(--red-bg){% endif %};display:flex;align-items:center;justify-content:center;">
+              <i class="bi {% if item.item_type == 'pdf_book' %}bi-file-pdf{% elif item.item_type == 'audio_book' %}bi-headphones{% elif item.item_type == 'textbook' %}bi-book{% else %}bi-paperclip{% endif %}" style="font-size:2.5rem;color:{% if item.item_type == 'pdf_book' %}var(--blue){% elif item.item_type == 'audio_book' %}var(--purple){% elif item.item_type == 'textbook' %}var(--purple){% else %}var(--red){% endif %};"></i>
+            </div>
+          {% endif %}
+          <div class="p-3">
+            <div class="d-flex align-items-center gap-1 mb-2">
+              <span class="badge-green px-2 py-0 rounded-pill" style="font-size:.7rem;">Bepul</span>
+              {% if item.subject %}
+              <span class="badge-blue px-2 py-0 rounded-pill" style="font-size:.7rem;">{{ item.subject.name }}</span>
+              {% endif %}
+            </div>
+            <div class="fw-600 text-dark mb-1" style="font-size:.9rem;line-height:1.3;">{{ item.title|truncatechars:50 }}</div>
+            {% if item.author %}<div class="text-muted" style="font-size:.78rem;">{{ item.author }}</div>{% endif %}
+            <div class="d-flex gap-3 mt-2 text-muted" style="font-size:.75rem;">
+              <span><i class="bi bi-eye me-1"></i>{{ item.view_count }}</span>
+              <span><i class="bi bi-download me-1"></i>{{ item.download_count }}</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+      <i class="bi bi-book" style="font-size:3rem;color:var(--blue-bg);"></i>
+      <p class="text-muted mt-3">Materiallar topilmadi</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+</div>
+{% endblock %}

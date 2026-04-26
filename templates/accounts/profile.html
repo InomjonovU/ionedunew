@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Profil — EduSphere{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Chap: Avatar + Statistika -->
+    <div class="col-lg-4">
+      <div class="card p-4 text-center mb-4">
+        {% if user.avatar %}
+          <img src="{{ user.avatar.url }}" width="88" height="88" class="rounded-circle object-fit-cover mx-auto mb-3" style="border:3px solid var(--blue-bg);">
+        {% else %}
+          <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" style="width:88px;height:88px;background:var(--blue-bg);font-family:'Sora',sans-serif;font-weight:800;font-size:2rem;color:var(--blue);">
+            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+          </div>
+        {% endif %}
+        <h5 class="fw-700 mb-1">{{ user.get_full_name }}</h5>
+        <div class="text-muted mb-2" style="font-size:.88rem;">{{ user.get_grade_label }}</div>
+        {% if user.bio %}<p class="text-muted mt-3 mb-0" style="font-size:.85rem;">{{ user.bio }}</p>{% endif %}
+      </div>
+
+      <!-- Yutuqlar -->
+      {% if badges %}
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-3">Yutuqlar</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for ub in badges %}
+          <div title="{{ ub.badge.name }}" class="d-flex flex-column align-items-center" style="width:56px;">
+            <div style="width:44px;height:44px;background:{{ ub.badge.color }}20;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:{{ ub.badge.color }};">
+              <i class="bi {{ ub.badge.icon }}"></i>
+            </div>
+            <div class="text-muted text-center mt-1" style="font-size:.65rem;line-height:1.2;">{{ ub.badge.name }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Reyting -->
+      <div class="card p-4">
+        <h6 class="fw-700 mb-3">Reyting</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted" style="font-size:.88rem;">Umumiy ball</span>
+          <span class="fw-700" style="color:var(--purple);">{{ user.total_score }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted" style="font-size:.88rem;">O'rtacha ball</span>
+          <span class="fw-700" style="color:var(--blue);">{{ avg_score }}%</span>
+        </div>
+        <a href="{% url 'leaderboard:leaderboard' %}" class="btn btn-outline-primary btn-sm w-100 mt-3">Reytingni ko'rish</a>
+      </div>
+    </div>
+
+    <!-- O'ng: Tahrirlash + Sertifikatlar + Progress -->
+    <div class="col-lg-8">
+
+      <!-- Profilni tahrirlash -->
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-3">Ma'lumotlarni tahrirlash</h6>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.grade.label }}</label>
+              {{ form.grade }}
+            </div>
+            <div class="col-6">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.language.label }}</label>
+              {{ form.language }}
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.bio.label }}</label>
+              {{ form.bio }}
+            </div>
+            <div class="col-12">
+              <label class="form-label" style="font-size:.85rem;font-weight:500;">{{ form.avatar.label }}</label>
+              {{ form.avatar }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm mt-3 px-4">Saqlash</button>
+        </form>
+      </div>
+
+      <!-- Fan bo'yicha progress -->
+      {% if subject_progress %}
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-3">Fan bo'yicha progress</h6>
+        {% for sp in subject_progress %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span style="font-size:.88rem;font-weight:500;">{{ sp.subject.name }}</span>
+            <span style="font-size:.8rem;color:var(--gray);">{{ sp.percent }}%</span>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" style="width:{{ sp.percent }}%;background:var(--{{ sp.subject.color }});"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Sertifikatlar -->
+      {% if certificates %}
+      <div class="card p-4">
+        <h6 class="fw-700 mb-3">Sertifikatlar</h6>
+        {% for cert in certificates %}
+        <a href="{% url 'certificates:view' cert.uuid %}" class="d-flex align-items-center justify-content-between text-decoration-none p-2 rounded-3 mb-1" style="transition:background .15s;" onmouseover="this.style.background='var(--light)'" onmouseout="this.style.background=''">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:36px;height:36px;background:var(--blue-bg);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--blue);">
+              <i class="bi bi-award"></i>
+            </div>
+            <div>
+              <div class="text-dark fw-500" style="font-size:.88rem;">{{ cert.quiz.title }}</div>
+              <div class="text-muted" style="font-size:.78rem;">{{ cert.issued_at|date:"d.m.Y" }}</div>
+            </div>
+          </div>
+          <span class="fw-700" style="font-size:.85rem;color:var(--blue);">{{ cert.score|floatformat:0 }}%</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

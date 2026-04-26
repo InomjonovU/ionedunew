@@ -1,0 +1,90 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Material tahrirlash{% else %}Yangi material{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'panel:library' %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Kutubxona
+  </a>
+  {% if object %}
+  <span style="color:var(--slate-300);">/</span>
+  <span style="font-size:.83rem;color:var(--slate-600);">{{ object.title|truncatechars:40 }}</span>
+  {% endif %}
+</div>
+
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<div class="row g-4">
+
+  <div class="col-lg-8">
+    <div class="card p-4">
+      <div class="section-title">Material ma'lumotlari</div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Sarlavha *</label>
+          {{ form.title }}
+          {% for e in form.title.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Fan</label>
+          {{ form.subject }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sinf</label>
+          {{ form.grade }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tur</label>
+          {{ form.item_type }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Muallif</label>
+          {{ form.author }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Tavsif</label>
+          {{ form.description }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Fayl</label>
+          {% if object and object.file %}
+          <div class="mb-2"><a href="{{ object.file.url }}" target="_blank" style="font-size:.78rem;color:var(--blue);">Mavjud fayl <i class="bi bi-box-arrow-up-right"></i></a></div>
+          {% endif %}
+          {{ form.file }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Muqova rasmi</label>
+          {% if object and object.cover_image %}
+          <div class="mb-2"><img src="{{ object.cover_image.url }}" style="height:44px;border-radius:6px;border:1px solid var(--slate-200);"></div>
+          {% endif %}
+          {{ form.cover_image }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card p-4 mb-4" style="position:sticky;top:72px;">
+      <div class="section-title">Holat</div>
+      <div class="d-flex flex-column gap-3 mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div style="font-weight:600;font-size:.83rem;">Nashr etilgan</div>
+            <div style="font-size:.72rem;color:var(--slate-400);">Foydalanuvchilarga ko'rsatish</div>
+          </div>
+          {{ form.is_published }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-2">
+        <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Yaratish{% endif %}
+      </button>
+      <a href="{% url 'panel:library' %}" class="btn btn-secondary w-100">Bekor qilish</a>
+    </div>
+  </div>
+
+</div>
+</form>
+
+{% endblock %}

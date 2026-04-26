@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Ko'p so'raladigan savollar{% endblock %}
+
+{% block extra_css %}
+<style>
+.faq-item {
+  border: 1px solid #E5EAF1; border-radius: 12px; overflow: hidden; margin-bottom: 10px;
+}
+.faq-question {
+  padding: 18px 20px; font-weight: 600; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  background: #fff; transition: background .15s; font-size: .95rem;
+}
+.faq-question:hover { background: var(--blue-bg); }
+.faq-question.open { background: var(--blue-bg); color: var(--blue); }
+.faq-question .chevron { transition: transform .25s; font-size: .9rem; }
+.faq-question.open .chevron { transform: rotate(180deg); }
+.faq-answer { display: none; padding: 0 20px 18px; color: #4B5563; font-size: .9rem; line-height: 1.7; }
+.faq-answer.show { display: block; }
+.category-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 20px;
+  font-size: .78rem; font-weight: 600; margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="text-center mb-5">
+    <span class="badge mb-3" style="background:var(--blue-bg);color:var(--blue);padding:6px 14px;border-radius:20px;font-weight:600;">
+      FAQ
+    </span>
+    <h1 class="fw-800 mb-3" style="font-size:2.2rem;">Ko'p so'raladigan savollar</h1>
+    <p class="text-muted" style="font-size:1.05rem;">Javob topa olmadingizmi? <a href="{% url 'contact' %}" style="color:var(--blue);">Biz bilan bog'laning</a></p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <div class="category-badge" style="background:var(--blue-bg);color:var(--blue);">
+        <i class="bi bi-person me-1"></i>Hisob va ro'yxatdan o'tish
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Ro'yxatdan o'tish bepulmi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Ha, EduSphere'da ro'yxatdan o'tish va asosiy darslardan foydalanish mutlaqo bepul. Premium obuna qo'shimcha imkoniyatlar beradi.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Parolimni unutdim, nima qilishim kerak?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Kirish sahifasidagi "Parolni unutdim" tugmasini bosing va email manzilingizni kiriting. Parolni tiklash uchun havola yuboriladi.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Bir nechta qurilmada foydalana olamanmi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Ha, hisobingizdan istalgan qurilmada (telefon, planshet, kompyuter) foydalanishingiz mumkin.
+        </div>
+      </div>
+
+      <div class="category-badge mt-4" style="background:var(--purple-bg);color:var(--purple);">
+        <i class="bi bi-stars me-1"></i>Premium obuna
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Premium obuna qancha turadi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Premium obuna narxlari to'liq funksionallik uchun mavjud. Aniq narx va to'lov usullari uchun <a href="{% url 'contact' %}" style="color:var(--blue);">bog'laning</a>.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Premium obuna bilan nima qo'shimcha imkoniyatlar bo'ladi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          <ul style="margin:0;padding-left:20px;">
+            <li>Barcha premium darslarga kirish</li>
+            <li>AI chatbot (cheksiz savollar)</li>
+            <li>AI matn tekshiruv (essay check)</li>
+            <li>Shaxsiy AI tavsiyalar</li>
+            <li>Dars konspektlarini yuklab olish</li>
+            <li>Sertifikat olish</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="category-badge mt-4" style="background:var(--blue-bg);color:var(--blue);">
+        <i class="bi bi-play-circle me-1"></i>Darslar va testlar
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Qaysi sinflar uchun darslar mavjud?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Platformada 1-sinf dan 11-sinf gacha bo'lgan barcha fanlar bo'yicha darslar mavjud.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Testlar necha marta yechish mumkin?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Testlarni cheksiz marta yechish mumkin. Har safar yangi urinish hisoblanadi va eng yaxshi natijangiz saqlanadi.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Sertifikat qanday olinadi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Chorak testini belgilangan minimal ball (odatda 80%) bilan muvaffaqiyatli topshirganingizdan so'ng avtomatik sertifikat beriladi. Sertifikatni yuklab olish va ulashish mumkin.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          AI yordamchi qanday ishlaydi?
+          <i class="bi bi-chevron-down chevron"></i>
+        </div>
+        <div class="faq-answer">
+          Dars sahifasidagi AI chatbot dars mavzusini bilib oladi va o'sha mavzu bo'yicha savollaringizga javob beradi. O'zbek, rus yoki ingliz tilida muloqot qilish mumkin.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  const isOpen = el.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-question').forEach(q => {
+    q.classList.remove('open');
+    q.nextElementSibling.classList.remove('show');
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    el.classList.add('open');
+    answer.classList.add('show');
+  }
+}
+</script>
+{% endblock %}

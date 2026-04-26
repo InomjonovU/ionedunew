@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Biz haqimizda{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <!-- Hero -->
+  <div class="row align-items-center mb-5 g-5">
+    <div class="col-lg-6">
+      <span class="badge mb-3" style="background:var(--blue-bg);color:var(--blue);padding:6px 14px;border-radius:20px;font-weight:600;">
+        Biz haqimizda
+      </span>
+      <h1 class="fw-800 mb-3" style="font-size:2.4rem;line-height:1.2;">
+        O'zbekiston ta'limini <span style="color:var(--blue);">raqamlashtirish</span>
+      </h1>
+      <p class="text-muted mb-4" style="font-size:1.05rem;line-height:1.7;">
+        EduSphere — 1-11 sinf o'quvchilari uchun yaratilgan zamonaviy ta'lim platformasi.
+        Biz har bir o'quvchiga sifatli bilim olish imkoniyatini berishni maqsad qilib qo'yganmiz.
+      </p>
+      <div class="d-flex gap-3 flex-wrap">
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary px-4 py-2">
+          Bepul boshlash
+        </a>
+        <a href="{% url 'contact' %}" class="btn btn-light px-4 py-2">
+          Bog'lanish
+        </a>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="p-4 rounded-4 text-center" style="background:var(--blue-bg);">
+            <div class="fw-800" style="font-size:2rem;color:var(--blue);">{{ stats.active_students_count }}</div>
+            <div class="text-muted mt-1" style="font-size:.88rem;">Faol o'quvchi</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-4 rounded-4 text-center" style="background:var(--blue-bg);">
+            <div class="fw-800" style="font-size:2rem;color:var(--blue);">{{ stats.video_lessons_count }}</div>
+            <div class="text-muted mt-1" style="font-size:.88rem;">Dars va video</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-4 rounded-4 text-center" style="background:#FFF7ED;">
+            <div class="fw-800" style="font-size:2rem;color:#F59E0B;">{{ stats.test_questions_count }}</div>
+            <div class="text-muted mt-1" style="font-size:.88rem;">Test savollari</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="p-4 rounded-4 text-center" style="background:var(--purple-bg);">
+            <div class="fw-800" style="font-size:2rem;color:var(--purple);">{{ stats.grades_count }}</div>
+            <div class="text-muted mt-1" style="font-size:.88rem;">Sinf darslari</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission -->
+  <div class="row mb-5">
+    <div class="col-12">
+      <div class="p-5 rounded-4" style="background:linear-gradient(135deg,#1E3A5F,#2563EB);color:#fff;">
+        <div class="row align-items-center g-4">
+          <div class="col-lg-7">
+            <h2 class="fw-800 mb-3">Bizning maqsadimiz</h2>
+            <p style="opacity:.85;font-size:1.05rem;line-height:1.7;">
+              Har bir o'quvchiga, qayerda yashashidan qat'i nazar, yuqori sifatli ta'lim olish imkoniyatini berish.
+              AI texnologiyalari va zamonaviy pedagogika usullarini birlashtirgan holda shaxsiy o'quv tajribasini yaratamiz.
+            </p>
+          </div>
+          <div class="col-lg-5 text-center">
+            <i class="bi bi-mortarboard" style="font-size:5rem;opacity:.3;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Values -->
+  <h2 class="fw-800 text-center mb-4">Qadriyatlarimiz</h2>
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="p-4 rounded-4 h-100" style="border:1px solid #E5EAF1;">
+        <div class="mb-3" style="width:48px;height:48px;border-radius:12px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-lightbulb" style="color:var(--blue);font-size:1.3rem;"></i>
+        </div>
+        <h5 class="fw-700 mb-2">Sifat</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;line-height:1.6;">
+          Har bir dars va test ekspertlar tomonidan yaratilgan va maktab dasturiga mos keladi.
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-4 rounded-4 h-100" style="border:1px solid #E5EAF1;">
+        <div class="mb-3" style="width:48px;height:48px;border-radius:12px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-people" style="color:var(--blue);font-size:1.3rem;"></i>
+        </div>
+        <h5 class="fw-700 mb-2">Qulaylik</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;line-height:1.6;">
+          Platforma mobil va kompyuterda bir xil qulay ishlaydi. Istalgan vaqt, istalgan joydan.
+        </p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="p-4 rounded-4 h-100" style="border:1px solid #E5EAF1;">
+        <div class="mb-3" style="width:48px;height:48px;border-radius:12px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-stars" style="color:var(--purple);font-size:1.3rem;"></i>
+        </div>
+        <h5 class="fw-700 mb-2">Innovatsiya</h5>
+        <p class="text-muted mb-0" style="font-size:.88rem;line-height:1.6;">
+          AI texnologiyasi orqali har bir o'quvchiga shaxsiy tavsiyalar va yordam taqdim etamiz.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="text-center py-4">
+    <h3 class="fw-800 mb-3">Bizga qo'shiling</h3>
+    <p class="text-muted mb-4">Bepul ro'yxatdan o'ting va ta'limni yangi darajada his eting</p>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary px-5 py-2" style="font-size:1rem;">
+      <i class="bi bi-person-plus me-2"></i>Bepul boshlash
+    </a>
+  </div>
+
+</div>
+{% endblock %}

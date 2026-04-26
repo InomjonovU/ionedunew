@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Bildirishnomalar — EduSphere{% endblock %}
+
+{% block content %}
+<div style="background:var(--light);min-height:calc(100vh - 64px);">
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h4 class="fw-800 mb-0">Bildirishnomalar</h4>
+  </div>
+
+  {% if notifications %}
+  <div class="card">
+    {% for n in notifications %}
+    <div class="d-flex align-items-start gap-3 p-3 {% if not forloop.last %}border-bottom{% endif %}" style="{% if not n.is_read %}background:var(--blue-bg);{% endif %}">
+      <div style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                  background:{% if n.notification_type == 'certificate' %}#FEF3C7{% elif n.notification_type == 'test_result' %}var(--blue-bg){% elif n.notification_type == 'new_lesson' %}var(--blue-bg){% else %}var(--light){% endif %};">
+        <i class="bi {{ n.get_icon }}" style="color:{% if n.notification_type == 'certificate' %}#D97706{% elif n.notification_type == 'test_result' %}var(--blue){% elif n.notification_type == 'new_lesson' %}var(--blue){% else %}var(--gray){% endif %};"></i>
+      </div>
+      <div class="flex-grow-1">
+        <div class="fw-600" style="font-size:.9rem;">{{ n.title }}</div>
+        <div class="text-muted" style="font-size:.83rem;">{{ n.message }}</div>
+        <div class="text-muted mt-1" style="font-size:.75rem;">{{ n.created_at|timesince }} oldin</div>
+      </div>
+      {% if n.action_url %}
+      <a href="{{ n.action_url }}" class="btn btn-sm btn-outline-primary flex-shrink-0">Ko'rish</a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-bell" style="font-size:3.5rem;color:var(--blue-bg);"></i>
+    <h5 class="fw-700 mt-3 mb-2">Bildirishnomalar yo'q</h5>
+    <p class="text-muted">Yangi bildirishnomalar shu yerda ko'rsatiladi.</p>
+  </div>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

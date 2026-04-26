@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}Test natijasi — {{ quiz.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .score-ring {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    margin: 0 auto;
+    border: 8px solid;
+    position: relative;
+  }
+  .score-ring::before {
+    content: '';
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(
+      {% if attempt.is_passed %}var(--blue){% else %}var(--red){% endif %}
+      {{ attempt.score|floatformat:0 }}%,
+      var(--border) 0%
+    );
+    z-index: -1;
+    mask: radial-gradient(transparent 62px, black 63px);
+    -webkit-mask: radial-gradient(transparent 62px, black 63px);
+  }
+  .answer-row {
+    border-radius: 12px; padding: 16px 20px;
+    margin-bottom: 10px;
+    border-left: 4px solid;
+  }
+  .answer-row.correct { background: var(--blue-bg); border-left-color: var(--blue); }
+  .answer-row.wrong { background: var(--red-bg); border-left-color: var(--red); }
+  .answer-row.skipped { background: var(--amber-bg); border-left-color: var(--amber); }
+  .cert-banner {
+    background: linear-gradient(135deg, #FEF3C7, #FDE68A, #FCD34D);
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative; overflow: hidden;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+
+      <!-- NATIJA KARTASI -->
+      <div class="card p-5 text-center mb-4">
+
+        <!-- Score Ring -->
+        <div class="mb-4">
+          <div class="score-ring" style="border-color:{% if attempt.is_passed %}var(--blue){% else %}var(--red){% endif %};">
+            <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:2.8rem;color:{% if attempt.is_passed %}var(--blue){% else %}var(--red){% endif %};">
+              {{ attempt.score|floatformat:0 }}%
+            </div>
+            <div style="font-size:.72rem;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">ball</div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-2">
+          {% if attempt.is_passed %}
+          <span class="badge-blue px-4 py-2 rounded-pill" style="font-size:.9rem;font-weight:700;">
+            <i class="bi bi-check-circle-fill me-2"></i>O'tildi!
+          </span>
+          {% else %}
+          <span class="badge-red px-4 py-2 rounded-pill" style="font-size:.9rem;font-weight:700;">
+            <i class="bi bi-x-circle-fill me-2"></i>Muvaffaqiyatsiz
+          </span>
+          {% endif %}
+        </div>
+
+        <h4 class="fw-800 mb-1 mt-3">
+          {% if attempt.is_passed %}Tabriklaymiz!{% else %}Keyingi safar muvaffaq bo'lasiz{% endif %}
+        </h4>
+        <p class="text-muted mb-4" style="font-size:.9rem;">
+          <strong class="text-dark">{{ attempt.correct_count }}</strong> ta to'g'ri
+          / <strong class="text-dark">{{ attempt.total_questions }}</strong> ta savol
+          &nbsp;&bull;&nbsp; O'tish bali: <strong style="color:var(--blue);">{{ quiz.pass_score }}%</strong>
+        </p>
+
+        <!-- Stats row -->
+        <div class="row g-3 mb-4">
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:var(--blue-bg);">
+              <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.4rem;color:var(--blue);">{{ attempt.correct_count }}</div>
+              <div style="font-size:.75rem;color:var(--gray);">To'g'ri</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:var(--red-bg);">
+              <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.4rem;color:var(--red);">{{ wrong_count }}</div>
+              <div style="font-size:.75rem;color:var(--gray);">Noto'g'ri</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-3 rounded-3" style="background:var(--purple-bg);">
+              <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:1.4rem;color:var(--purple);">{{ attempt.score|floatformat:0 }}%</div>
+              <div style="font-size:.75rem;color:var(--gray);">Ball</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Urinishlar ma'lumoti -->
+        {% if attempts_left is not None %}
+        <div class="p-3 rounded-3 mb-4 d-flex align-items-center justify-content-center gap-2"
+             style="background:{% if attempts_left > 0 %}var(--amber-bg){% else %}var(--red-bg){% endif %};">
+          <i class="bi bi-arrow-repeat" style="color:{% if attempts_left > 0 %}var(--amber){% else %}var(--red){% endif %};"></i>
+          <span class="fw-600" style="font-size:.85rem;color:{% if attempts_left > 0 %}var(--amber){% else %}var(--red){% endif %};">
+            {% if attempts_left > 0 %}{{ attempts_left }} ta urinish qoldi{% else %}Urinishlar tugadi{% endif %}
+          </span>
+        </div>
+        {% endif %}
+
+        <!-- Sertifikat -->
+        {% if certificate %}
+        <div class="cert-banner mb-4 text-start">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:52px;height:52px;background:#fff;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.1);flex-shrink:0;">
+              <i class="bi bi-award-fill" style="font-size:1.6rem;color:var(--amber);"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-800" style="font-size:1rem;color:#78350F;">Sertifikat olishga haqsiz!</div>
+              <div style="font-size:.82rem;color:#92400E;">{{ quiz.title }} — {{ attempt.score|floatformat:0 }}%</div>
+            </div>
+            <a href="{% url 'certificates:view' certificate.uuid %}"
+               class="btn btn-sm flex-shrink-0"
+               style="background:#92400E;color:#fff;border:none;font-weight:700;border-radius:8px;">
+              Ko'rish <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Tugmalar -->
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+          {% if can_retry and not attempt.is_passed %}
+          <a href="{% url 'quizzes:start' quiz.pk %}" class="btn btn-outline-primary px-4">
+            <i class="bi bi-arrow-clockwise me-1"></i>Qayta topshirish
+          </a>
+          {% endif %}
+          {% if quiz.quiz_type == 'lesson' and quiz.lesson %}
+          <a href="{% url 'lessons:detail' quiz.lesson.pk %}" class="btn btn-outline-primary px-4">
+            <i class="bi bi-arrow-left me-1"></i>Darsga qaytish
+          </a>
+          {% endif %}
+          <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary px-4">
+            Dashboard <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- SAVOL TAHLILI -->
+      <div class="card p-4">
+        <h6 class="fw-700 mb-4 d-flex align-items-center gap-2">
+          <i class="bi bi-list-check" style="color:var(--blue);font-size:1rem;"></i>
+          Savol bo'yicha tahlil
+        </h6>
+
+        {% for item in answers_data %}
+        <div class="answer-row {% if item.is_correct %}correct{% elif item.selected %}wrong{% else %}skipped{% endif %}">
+          <div class="d-flex align-items-start gap-3">
+            <div style="width:28px;height:28px;border-radius:8px;background:{% if item.is_correct %}var(--blue){% elif item.selected %}var(--red){% else %}var(--amber){% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+              <i class="bi bi-{% if item.is_correct %}check-lg{% elif item.selected %}x-lg{% else %}dash-lg{% endif %} text-white" style="font-size:.85rem;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-600 mb-2" style="font-size:.9rem;line-height:1.6;">
+                {{ forloop.counter }}. {{ item.question.text }}
+              </div>
+              {% if not item.is_correct %}
+              <div class="d-flex flex-column gap-1" style="font-size:.83rem;">
+                {% if item.selected %}
+                <div class="d-flex align-items-center gap-2" style="color:var(--red);">
+                  <i class="bi bi-x-circle flex-shrink-0"></i>
+                  <span>Sizning javob: <strong>{{ item.selected.text }}</strong></span>
+                </div>
+                {% else %}
+                <div class="d-flex align-items-center gap-2" style="color:var(--amber);">
+                  <i class="bi bi-dash-circle flex-shrink-0"></i>
+                  <span>Javob berilmadi</span>
+                </div>
+                {% endif %}
+                {% if item.correct %}
+                <div class="d-flex align-items-center gap-2" style="color:var(--blue);">
+                  <i class="bi bi-check-circle flex-shrink-0"></i>
+                  <span>To'g'ri javob: <strong>{{ item.correct.text }}</strong></span>
+                </div>
+                {% endif %}
+              </div>
+              {% else %}
+              <div class="d-flex align-items-center gap-2" style="font-size:.83rem;color:var(--blue);">
+                <i class="bi bi-check-circle flex-shrink-0"></i>
+                <span>To'g'ri: <strong>{{ item.selected.text }}</strong></span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

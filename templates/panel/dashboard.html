@@ -1,0 +1,288 @@
+{% extends 'panel/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card { transition: box-shadow .13s; }
+.stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.06); }
+.activity-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Quick actions -->
+<div class="d-flex gap-2 mb-5 flex-wrap">
+  <a href="{% url 'panel:lesson_create' %}" class="quick-action">
+    <i class="bi bi-play-circle" style="color:var(--blue);"></i>
+    <div>
+      <div style="font-weight:600;font-size:.82rem;color:var(--slate-900);">Yangi dars</div>
+      <div style="font-size:.72rem;color:var(--slate-400);">Video dars qo'shish</div>
+    </div>
+  </a>
+  <a href="{% url 'panel:quiz_create' %}" class="quick-action">
+    <i class="bi bi-patch-question" style="color:var(--purple);"></i>
+    <div>
+      <div style="font-weight:600;font-size:.82rem;color:var(--slate-900);">Yangi test</div>
+      <div style="font-size:.72rem;color:var(--slate-400);">Test va savollar</div>
+    </div>
+  </a>
+  <a href="{% url 'panel:subject_create' %}" class="quick-action">
+    <i class="bi bi-collection" style="color:var(--blue);"></i>
+    <div>
+      <div style="font-weight:600;font-size:.82rem;color:var(--slate-900);">Yangi fan</div>
+      <div style="font-size:.72rem;color:var(--slate-400);">Fan qo'shish</div>
+    </div>
+  </a>
+  <a href="{% url 'panel:quarter_create' %}" class="quick-action">
+    <i class="bi bi-calendar3" style="color:var(--amber);"></i>
+    <div>
+      <div style="font-weight:600;font-size:.82rem;color:var(--slate-900);">Yangi chorak</div>
+      <div style="font-size:.72rem;color:var(--slate-400);">Chorak yaratish</div>
+    </div>
+  </a>
+  <a href="{% url 'panel:library_create' %}" class="quick-action">
+    <i class="bi bi-journal-plus" style="color:var(--red);"></i>
+    <div>
+      <div style="font-weight:600;font-size:.82rem;color:var(--slate-900);">Kutubxona</div>
+      <div style="font-size:.72rem;color:var(--slate-400);">Material qo'shish</div>
+    </div>
+  </a>
+</div>
+
+<!-- Stats row 1 -->
+<div class="row g-3 mb-3">
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div style="font-size:.72rem;color:var(--slate-500);font-weight:500;margin-bottom:4px;">Jami foydalanuvchi</div>
+          <div class="stat-num">{{ stats.total_users }}</div>
+          <div style="font-size:.72rem;color:var(--blue);margin-top:4px;font-weight:500;">+{{ stats.new_users_month }} bu oy</div>
+        </div>
+        <div class="stat-icon" style="background:var(--blue-light);color:var(--blue);"><i class="bi bi-people-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div style="font-size:.72rem;color:var(--slate-500);font-weight:500;margin-bottom:4px;">Testlar</div>
+          <div class="stat-num" style="color:var(--purple);">{{ stats.total_quizzes }}</div>
+          <div style="font-size:.72rem;color:var(--slate-400);margin-top:4px;">{{ stats.attempts_month }} urinish bu oy</div>
+        </div>
+        <div class="stat-icon" style="background:var(--purple-light);color:var(--purple);"><i class="bi bi-clipboard-check-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div style="font-size:.72rem;color:var(--slate-500);font-weight:500;margin-bottom:4px;">Nashr etilgan darslar</div>
+          <div class="stat-num" style="color:var(--blue);">{{ stats.total_lessons }}</div>
+          <div style="font-size:.72rem;color:var(--slate-400);margin-top:4px;">{{ stats.total_quizzes }} ta test</div>
+        </div>
+        <div class="stat-icon" style="background:var(--blue-light);color:var(--blue);"><i class="bi bi-play-circle-fill"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex align-items-start justify-content-between">
+        <div>
+          <div style="font-size:.72rem;color:var(--slate-500);font-weight:500;margin-bottom:4px;">Sertifikatlar</div>
+          <div class="stat-num" style="color:var(--amber);">{{ stats.total_certs }}</div>
+          <div style="font-size:.72rem;color:var(--slate-400);margin-top:4px;">O'rtacha: {{ avg_score }}%</div>
+        </div>
+        <div class="stat-icon" style="background:var(--amber-light);color:var(--amber);"><i class="bi bi-award-fill"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats row 2 -->
+<div class="row g-3 mb-5">
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--blue-light);color:var(--blue);flex-shrink:0;"><i class="bi bi-clipboard-check"></i></div>
+      <div>
+        <div style="font-size:.7rem;color:var(--slate-500);font-weight:500;">Bu oy urinishlar</div>
+        <div style="font-weight:800;font-size:1.35rem;">{{ stats.attempts_month }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:#EFF6FF;color:var(--blue);flex-shrink:0;"><i class="bi bi-journal-bookmark"></i></div>
+      <div>
+        <div style="font-size:.7rem;color:var(--slate-500);font-weight:500;">Kutubxona</div>
+        <div style="font-weight:800;font-size:1.35rem;">{{ stats.library_items }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--purple-light);color:var(--purple);flex-shrink:0;"><i class="bi bi-mortarboard-fill"></i></div>
+      <div>
+        <div style="font-size:.7rem;color:var(--slate-500);font-weight:500;">Sertifikatlar</div>
+        <div style="font-weight:800;font-size:1.35rem;">{{ stats.total_certs }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3" style="border-left:3px solid var(--blue);">
+      <div>
+        <div style="font-size:.7rem;color:var(--slate-500);font-weight:500;">O'rtacha test bali</div>
+        <div style="font-weight:800;font-size:1.35rem;color:var(--blue);">{{ avg_score }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Top lessons -->
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header-panel">
+        <span class="title"><i class="bi bi-fire me-2" style="color:var(--amber);"></i>Eng ko'p ko'rilgan darslar</span>
+        <a href="{% url 'panel:lessons' %}" class="btn btn-sm btn-ghost">Barchasi →</a>
+      </div>
+      <table class="data-table">
+        <tbody>
+          {% for lesson in top_lessons %}
+          <tr>
+            <td style="width:30px;color:var(--slate-400);font-weight:700;font-size:.75rem;">{{ forloop.counter }}</td>
+            <td>
+              <div style="font-weight:500;font-size:.83rem;">{{ lesson.title|truncatechars:38 }}</div>
+              <div style="font-size:.72rem;color:var(--slate-400);">{{ lesson.subject.name }} · {{ lesson.grade }}-sinf</div>
+            </td>
+            <td style="text-align:right;width:80px;">
+              <span class="badge badge-blue">{{ lesson.view_count }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--slate-400);padding:24px;">Ma'lumot yo'q</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Subject activity -->
+  <div class="col-lg-3">
+    <div class="card p-4 h-100">
+      <div class="section-title">Fan faolligi</div>
+      {% for s in subject_activity %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:.8rem;font-weight:500;">{{ s.name }}</span>
+          <span style="font-size:.75rem;color:var(--slate-400);">{{ s.views }}</span>
+        </div>
+        {% with max_views=subject_activity.0.views %}
+        {% if max_views > 0 %}
+        <div style="height:5px;background:var(--slate-100);border-radius:3px;overflow:hidden;">
+          <div style="height:5px;border-radius:3px;background:var(--blue);width:{% widthratio s.views max_views 100 %}%;"></div>
+        </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+      {% endfor %}
+      <a href="{% url 'panel:analytics' %}" class="btn btn-sm btn-secondary w-100 mt-2">
+        <i class="bi bi-bar-chart-line me-1"></i>To'liq analytics
+      </a>
+    </div>
+  </div>
+
+  <!-- Recent users -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header-panel">
+        <span class="title"><i class="bi bi-person-plus me-2" style="color:var(--blue);"></i>Yangi foydalanuvchilar</span>
+        <a href="{% url 'panel:users' %}" class="btn btn-sm btn-ghost">Barchasi →</a>
+      </div>
+      {% for u in recent_users %}
+      <div class="d-flex align-items-center gap-2 px-4 py-2 {% if not forloop.last %}border-bottom{% endif %}" style="border-color:var(--slate-100)!important;">
+        <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-light);color:var(--blue);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+        </div>
+        <div class="flex-grow-1 overflow-hidden">
+          <div style="font-weight:500;font-size:.82rem;" class="text-truncate">{{ u.get_full_name|default:u.username }}</div>
+          <div style="font-size:.7rem;color:var(--slate-400);">{{ u.date_joined|date:"d.m.Y" }}{% if u.grade %} · {{ u.grade }}-sinf{% endif %}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent attempts -->
+<div class="card mt-4">
+  <div class="card-header-panel">
+    <span class="title"><i class="bi bi-clipboard-data me-2" style="color:var(--blue);"></i>So'nggi test natijalari</span>
+    <a href="{% url 'panel:quizzes' %}" class="btn btn-sm btn-ghost">Testlar →</a>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Foydalanuvchi</th>
+          <th>Test</th>
+          <th>Ball</th>
+          <th>Natija</th>
+          <th>Sana</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in recent_attempts %}
+        <tr>
+          <td>
+            <div style="font-weight:500;">{{ a.user.get_full_name|default:a.user.username }}</div>
+          </td>
+          <td style="max-width:180px;" class="text-truncate">{{ a.quiz.title }}</td>
+          <td><strong style="color:{% if a.is_passed %}var(--blue){% else %}var(--red){% endif %};">{{ a.score|floatformat:0 }}%</strong></td>
+          <td>
+            {% if a.is_passed %}
+            <span class="badge badge-green">O'tildi</span>
+            {% else %}
+            <span class="badge badge-red">O'tilmadi</span>
+            {% endif %}
+          </td>
+          <td style="color:var(--slate-400);font-size:.78rem;">{{ a.started_at|date:"d.m H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:24px;">Urinishlar yo'q</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Notification sender -->
+<div class="card mt-4 p-4">
+  <div class="section-title"><i class="bi bi-megaphone me-2"></i>Barcha foydalanuvchilarga xabar</div>
+  <form method="post" action="{% url 'panel:notify' %}">
+    {% csrf_token %}
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label">Sarlavha</label>
+        <input name="title" class="form-control" placeholder="Xabar sarlavhasi" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Matn</label>
+        <input name="message" class="form-control" placeholder="Xabar matni..." required>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-send me-1"></i>Yuborish
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

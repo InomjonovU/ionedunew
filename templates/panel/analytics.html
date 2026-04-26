@@ -1,0 +1,220 @@
+{% extends 'panel/base.html' %}
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-ring {
+  width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  font-family:'Sora',sans-serif;font-weight:800;
+}
+.chart-card { background:#fff;border:1px solid #E5EAF1;border-radius:12px;padding:20px; }
+.chart-card h6 { font-family:'Sora',sans-serif;font-weight:700;font-size:.9rem;margin-bottom:16px; }
+.subject-bar {
+  display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6;font-size:.83rem;
+}
+.subject-bar:last-child { border-bottom:none; }
+.subject-bar-fill { height:6px;border-radius:3px;background:var(--blue);transition:width .6s; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Summary stats from dashboard context (simplified) -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--blue-bg);">
+        <i class="bi bi-eye" style="color:var(--blue);"></i>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:.75rem;">Bugungi ko'rishlar</div>
+        <div class="stat-num" id="todayViews">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--blue-bg);">
+        <i class="bi bi-clipboard-check" style="color:var(--blue);"></i>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:.75rem;">Bugungi urinishlar</div>
+        <div class="stat-num" id="todayAttempts">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--purple-bg);">
+        <i class="bi bi-graph-up" style="color:var(--purple);"></i>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:.75rem;">30 kunlik ko'rishlar</div>
+        <div class="stat-num" id="totalViews30">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card d-flex align-items-center gap-3">
+      <div class="stat-icon" style="background:var(--red-bg);">
+        <i class="bi bi-trophy" style="color:var(--red);"></i>
+      </div>
+      <div>
+        <div class="text-muted" style="font-size:.75rem;">30 kunlik urinishlar</div>
+        <div class="stat-num" id="totalAttempts30">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Lesson views chart -->
+  <div class="col-lg-6">
+    <div class="chart-card">
+      <h6><i class="bi bi-eye me-2"></i>Dars ko'rishlar (30 kun)</h6>
+      <canvas id="viewsChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Quiz attempts chart -->
+  <div class="col-lg-6">
+    <div class="chart-card">
+      <h6><i class="bi bi-clipboard-check me-2"></i>Test urinishlari (30 kun)</h6>
+      <canvas id="attemptsChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Top subjects -->
+  <div class="col-lg-5">
+    <div class="chart-card">
+      <h6><i class="bi bi-bar-chart me-2"></i>Top fanlar (ko'rishlar)</h6>
+      {% with top_subjects|first as max_subject %}
+      {% for subject in top_subjects %}
+      <div class="subject-bar">
+        <div style="min-width:100px;font-weight:500;">{{ subject.name }}</div>
+        <div class="flex-grow-1">
+          <div class="subject-bar-fill"
+            style="width:{% if top_subjects.0.total_views > 0 %}{{ subject.total_views|floatformat:0 }}{% else %}0{% endif %}%;">
+          </div>
+        </div>
+        <div style="min-width:36px;text-align:right;color:var(--gray);font-size:.78rem;">{{ subject.total_views }}</div>
+      </div>
+      {% empty %}
+      <div class="text-muted text-center py-4">Ma'lumot yo'q</div>
+      {% endfor %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- Combined chart -->
+  <div class="col-lg-7">
+    <div class="chart-card">
+      <h6><i class="bi bi-activity me-2"></i>Umumiy faollik</h6>
+      <canvas id="combinedChart" height="220"></canvas>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const viewLabels   = {{ daily_views_labels|safe }};
+const viewData     = {{ daily_views_data|safe }};
+const attemptLabels = {{ daily_attempts_labels|safe }};
+const attemptData   = {{ daily_attempts_data|safe }};
+
+// Fill summary stats
+const todayViews = viewData[viewData.length - 1] || 0;
+const todayAttempts = attemptData[attemptData.length - 1] || 0;
+document.getElementById('todayViews').textContent = todayViews;
+document.getElementById('todayAttempts').textContent = todayAttempts;
+document.getElementById('totalViews30').textContent = viewData.reduce((a,b) => a+b, 0);
+document.getElementById('totalAttempts30').textContent = attemptData.reduce((a,b) => a+b, 0);
+
+const chartDefaults = {
+  tension: 0.4,
+  fill: true,
+  pointRadius: 3,
+  pointHoverRadius: 5,
+};
+
+const gridColor = 'rgba(0,0,0,.05)';
+
+new Chart(document.getElementById('viewsChart'), {
+  type: 'line',
+  data: {
+    labels: viewLabels,
+    datasets: [{
+      ...chartDefaults,
+      label: "Ko'rishlar",
+      data: viewData,
+      borderColor: '#1A6FD4',
+      backgroundColor: 'rgba(26,111,212,.1)',
+    }]
+  },
+  options: {
+    responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } }
+  }
+});
+
+new Chart(document.getElementById('attemptsChart'), {
+  type: 'bar',
+  data: {
+    labels: attemptLabels,
+    datasets: [{
+      label: 'Urinishlar',
+      data: attemptData,
+      backgroundColor: 'rgba(42,189,110,.7)',
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } }
+  }
+});
+
+new Chart(document.getElementById('combinedChart'), {
+  type: 'line',
+  data: {
+    labels: viewLabels,
+    datasets: [
+      {
+        ...chartDefaults,
+        label: "Ko'rishlar",
+        data: viewData,
+        borderColor: '#1A6FD4',
+        backgroundColor: 'rgba(26,111,212,.08)',
+      },
+      {
+        ...chartDefaults,
+        label: 'Urinishlar',
+        data: attemptData,
+        borderColor: '#2ABD6E',
+        backgroundColor: 'rgba(42,189,110,.08)',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } },
+    scales: { y: { beginAtZero: true, grid: { color: gridColor } }, x: { grid: { display: false } } }
+  }
+});
+
+// Animate subject bars to correct width based on max
+const bars = document.querySelectorAll('.subject-bar-fill');
+const maxViews = {{ top_subjects.0.total_views|default:1 }};
+bars.forEach((bar, i) => {
+  const views = [{% for s in top_subjects %}{{ s.total_views }}{% if not forloop.last %},{% endif %}{% endfor %}];
+  setTimeout(() => {
+    bar.style.width = (views[i] / maxViews * 100) + '%';
+  }, 100);
+});
+</script>
+{% endblock %}

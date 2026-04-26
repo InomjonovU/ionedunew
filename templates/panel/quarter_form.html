@@ -1,0 +1,250 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Chorak tahrirlash{% else %}Yangi chorak{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.question-item {
+  background:var(--slate-50); border:1px solid var(--slate-200);
+  border-radius:8px; padding:12px 14px; margin-bottom:8px;
+}
+.question-item .q-badge {
+  width:22px; height:22px; border-radius:5px;
+  background:var(--blue); color:#fff; display:flex; align-items:center;
+  justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0;
+}
+.choice-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:2px 8px; border-radius:4px; font-size:.72rem; font-weight:500;
+  background:var(--slate-100); color:var(--slate-600); margin:2px 0;
+}
+.choice-pill.correct { background:#D1FAE5; color:#065F46; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{% url 'panel:quarters' %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Choraklar
+  </a>
+  {% if object %}
+  <span style="color:var(--slate-300);">/</span>
+  <span style="font-size:.83rem;color:var(--slate-600);">{{ object }}</span>
+  {% endif %}
+</div>
+
+<div class="row g-4">
+
+  <div class="col-lg-5">
+
+    <!-- Form -->
+    <div class="card p-4 mb-4">
+      <div class="section-title">Chorak ma'lumotlari</div>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% for e in field.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Yaratish{% endif %}
+          </button>
+          <a href="{% url 'panel:quarters' %}" class="btn btn-secondary">Bekor qilish</a>
+        </div>
+      </form>
+    </div>
+
+    {% if object %}
+    <!-- Danger zone -->
+    <div class="card p-4" style="border-color:var(--red-light);">
+      <div style="font-size:.78rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Xavfli zona</div>
+      <form method="post" action="{% url 'panel:quarter_delete' object.pk %}"
+            onsubmit="return confirm('Chorakni o\'chirishni tasdiqlaysizmi?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm w-100" style="background:var(--red-light);color:var(--red);border:1px solid #FCA5A5;">
+          <i class="bi bi-trash me-1"></i>Chorakni o'chirish
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Quiz section -->
+  {% if object %}
+  <div class="col-lg-7">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h6 style="font-weight:700;font-size:.95rem;margin:0;">
+        <i class="bi bi-patch-question me-2" style="color:var(--blue);"></i>
+        Chorak testi
+      </h6>
+      {% if not quiz %}
+      <a href="{% url 'panel:quiz_create' %}?quarter={{ object.pk }}&type=quarter" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus me-1"></i>Test yaratish
+      </a>
+      {% endif %}
+    </div>
+
+    {% if quiz %}
+    <div class="card mb-4">
+      <div class="card-header-panel" style="background:var(--blue-light);border-color:#93C5FD;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-patch-check-fill" style="color:#fff;font-size:.95rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.9rem;">{{ quiz.title }}</div>
+            <div style="font-size:.72rem;color:var(--slate-500);">{{ questions|length }} savol · {{ quiz.time_limit|default:"Cheksiz" }}{% if quiz.time_limit %} daqiqa{% endif %} · O'tish: {{ quiz.pass_score }}%</div>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'panel:quiz_edit' quiz.pk %}" class="btn btn-sm btn-secondary">
+            <i class="bi bi-pencil me-1"></i>Tahrirlash
+          </a>
+          <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-success">
+            <i class="bi bi-plus me-1"></i>Savol
+          </a>
+        </div>
+      </div>
+
+      <div class="p-4">
+        {% if questions %}
+        {% for q in questions %}
+        <div class="question-item">
+          <div class="d-flex align-items-start gap-3">
+            <div class="q-badge">{{ forloop.counter }}</div>
+            <div class="flex-grow-1">
+              <div style="font-weight:500;font-size:.85rem;margin-bottom:6px;">{{ q.text|truncatechars:120 }}</div>
+              <div class="d-flex flex-wrap gap-1">
+                {% for choice in q.choices.all %}
+                <span class="choice-pill {% if choice.is_correct %}correct{% endif %}">
+                  {% if choice.is_correct %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                  {{ choice.text|truncatechars:30 }}
+                </span>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0">
+              <a href="{% url 'panel:question_edit' q.pk %}" class="btn-icon" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+              <form method="post" action="{% url 'panel:question_delete' q.pk %}"
+                    onsubmit="return confirm('Savolni o\'chirishni tasdiqlaysizmi?')" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon" style="color:var(--red);" title="O'chirish"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+        <div class="mt-3 text-center">
+          <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus me-1"></i>Yana savol qo'shish
+          </a>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="bi bi-question-circle" style="font-size:2.5rem;color:var(--slate-200);"></i>
+          <div style="color:var(--slate-400);margin-top:8px;font-size:.85rem;">Savollar hali qo'shilmagan</div>
+          <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-primary mt-3">
+            <i class="bi bi-plus me-1"></i>Birinchi savolni qo'shish
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="card p-5 text-center mb-4" style="border-style:dashed;border-color:var(--slate-200);">
+      <i class="bi bi-patch-question" style="font-size:2.5rem;color:var(--slate-200);"></i>
+      <div style="font-weight:600;margin-top:12px;font-size:.9rem;">Bu chorak uchun test yaratilmagan</div>
+      <div style="color:var(--slate-400);font-size:.82rem;margin-top:4px;">Chorak yakunida o'quvchilar test yechsin</div>
+      <a href="{% url 'panel:quiz_create' %}?quarter={{ object.pk }}&type=quarter" class="btn btn-primary btn-sm mt-4">
+        <i class="bi bi-plus me-1"></i>Chorak testini yaratish
+      </a>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Darslar ro'yhati -->
+{% if object %}
+<div class="mt-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h6 style="font-weight:700;font-size:.95rem;margin:0;">
+      <i class="bi bi-play-circle me-2" style="color:var(--blue);"></i>
+      Darslar
+      <span class="badge badge-gray ms-2">{{ quarter_lessons|length }}</span>
+    </h6>
+    <a href="{% url 'panel:lesson_create' %}?quarter={{ object.pk }}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus me-1"></i>Dars qo'shish
+    </a>
+  </div>
+
+  {% if quarter_lessons %}
+  <div class="card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Dars nomi</th>
+          <th>Ko'rishlar</th>
+          <th>Test</th>
+          <th>Holat</th>
+          <th>Amallar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lesson in quarter_lessons %}
+        <tr>
+          <td style="color:var(--slate-400);font-size:.78rem;font-weight:600;">{{ forloop.counter }}</td>
+          <td>
+            <div style="font-weight:500;font-size:.85rem;">{{ lesson.title }}</div>
+            {% if lesson.duration_minutes %}<div style="font-size:.72rem;color:var(--slate-400);">{{ lesson.duration_minutes }} daqiqa</div>{% endif %}
+          </td>
+          <td style="font-size:.83rem;color:var(--slate-500);">{{ lesson.view_count }}</td>
+          <td>
+            {% with lquiz=lesson.quiz %}
+            {% if lquiz %}
+            <span class="badge badge-purple">{{ lquiz.questions.count }} savol</span>
+            {% else %}
+            <span style="font-size:.75rem;color:var(--slate-300);">—</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            {% if lesson.is_published %}
+            <span class="badge badge-green">Nashr</span>
+            {% else %}
+            <span class="badge badge-gray">Qoralama</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'panel:lesson_edit' lesson.pk %}" class="btn-icon" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card p-5 text-center" style="border-style:dashed;border-color:var(--slate-200);">
+    <i class="bi bi-play-circle" style="font-size:2.5rem;color:var(--slate-200);"></i>
+    <div style="font-weight:600;margin-top:12px;font-size:.9rem;">Bu chorakda hali darslar yo'q</div>
+    <div style="color:var(--slate-400);font-size:.82rem;margin-top:4px;">Chorakka darslar qo'shing</div>
+    <a href="{% url 'panel:lesson_create' %}?quarter={{ object.pk }}" class="btn btn-primary btn-sm mt-4">
+      <i class="bi bi-plus me-1"></i>Birinchi darsni qo'shish
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

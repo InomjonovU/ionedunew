@@ -1,0 +1,65 @@
+{% extends 'panel/base.html' %}
+{% block title %}Foydalanuvchilar{% endblock %}
+{% block page_title %}Foydalanuvchilar{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+    <input name="q" class="form-control form-control-sm" placeholder="Ism, familiya yoki email..."
+           value="{{ q }}" style="width:240px;">
+    <select name="grade" class="form-select form-select-sm" style="width:120px;">
+      <option value="">Barcha sinflar</option>
+      {% for g in grades %}<option value="{{ g }}" {% if grade == g|stringformat:'s' %}selected{% endif %}>{{ g }}-sinf</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Qidirish</button>
+    {% if q or grade %}<a href="{% url 'panel:users' %}" class="btn btn-sm btn-secondary">Tozalash</a>{% endif %}
+  </form>
+  <div style="font-size:.83rem;color:var(--slate-400);">
+    <strong style="color:var(--slate-700);">{{ total }}</strong> ta foydalanuvchi
+  </div>
+</div>
+
+<div class="card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Foydalanuvchi</th>
+        <th>Email</th>
+        <th>Sinf</th>
+        <th>Ball</th>
+        <th>Sertifikat</th>
+        <th>Urinish</th>
+        <th>Qo'shilgan</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="color:var(--slate-400);font-size:.78rem;font-weight:600;">{{ forloop.counter }}</td>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:28px;height:28px;border-radius:7px;background:var(--blue-light);color:var(--blue);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+            </div>
+            <span style="font-weight:500;font-size:.85rem;">{{ u.get_full_name|default:u.username }}</span>
+          </div>
+        </td>
+        <td style="color:var(--slate-400);font-size:.8rem;">{{ u.email }}</td>
+        <td style="font-size:.8rem;">{% if u.grade %}{{ u.grade }}-sinf{% else %}—{% endif %}</td>
+        <td><span style="font-weight:700;color:var(--purple);">{{ u.total_score }}</span></td>
+        <td style="text-align:center;font-size:.83rem;">{{ u.cert_count }}</td>
+        <td style="text-align:center;font-size:.83rem;">{{ u.attempt_count }}</td>
+        <td style="color:var(--slate-400);font-size:.78rem;">{{ u.date_joined|date:"d.m.Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--slate-400);">Foydalanuvchilar topilmadi</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

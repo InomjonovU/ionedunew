@@ -1,0 +1,341 @@
+{% extends 'panel/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{% if object %}Dars tahrirlash{% else %}Yangi dars{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.field-group { margin-bottom:16px; }
+.tab-btn {
+  padding:6px 14px; border-radius:6px; font-size:.8rem; font-weight:600;
+  border:1px solid var(--slate-200); background:#fff; color:var(--slate-600);
+  cursor:pointer; transition:all .13s;
+}
+.tab-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+.upload-zone {
+  border:2px dashed var(--slate-200); border-radius:8px; padding:28px 20px;
+  text-align:center; cursor:pointer; transition:all .13s;
+}
+.upload-zone:hover, .upload-zone.over { border-color:var(--blue); background:var(--blue-light); }
+.progress-wrap { display:none; margin-top:12px; }
+.pbar-track { height:6px; background:var(--slate-100); border-radius:3px; overflow:hidden; }
+.pbar-fill { height:6px; background:var(--blue); width:0%; transition:width .2s; border-radius:3px; }
+
+/* Quiz inline section */
+.question-item {
+  background:var(--slate-50); border:1px solid var(--slate-200);
+  border-radius:8px; padding:12px 14px; margin-bottom:8px;
+}
+.question-item .q-badge {
+  width:22px; height:22px; border-radius:5px;
+  background:var(--blue); color:#fff; display:flex; align-items:center;
+  justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0;
+}
+.choice-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:2px 8px; border-radius:4px; font-size:.72rem; font-weight:500;
+  background:var(--slate-100); color:var(--slate-600); margin:2px 0;
+}
+.choice-pill.correct { background:#D1FAE5; color:#065F46; }
+.sticky-actions { position:sticky; top:72px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  {% if from_quarter %}
+  <a href="{% url 'panel:quarter_edit' from_quarter.pk %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Chorakka qaytish
+  </a>
+  <span style="color:var(--slate-300);">/</span>
+  <span style="font-size:.83rem;color:var(--slate-600);">{{ from_quarter }}</span>
+  {% else %}
+  <a href="{% url 'panel:lessons' %}" class="btn btn-sm btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Darslar
+  </a>
+  {% if object and object.quarter %}
+  <span style="color:var(--slate-300);">/</span>
+  <a href="{% url 'panel:quarter_edit' object.quarter.pk %}" class="btn btn-sm btn-secondary" style="font-size:.78rem;">{{ object.quarter }}</a>
+  {% endif %}
+  {% endif %}
+  {% if object %}
+  <span style="color:var(--slate-300);">/</span>
+  <span style="font-size:.83rem;color:var(--slate-600);">{{ object.title|truncatechars:40 }}</span>
+  {% endif %}
+</div>
+
+<form method="post" enctype="multipart/form-data" id="lessonForm">
+{% csrf_token %}
+{% if from_quarter %}<input type="hidden" name="_quarter_pk" value="{{ from_quarter.pk }}">{% endif %}
+
+<div class="row g-4">
+
+  <!-- ─── LEFT: content ─── -->
+  <div class="col-lg-8">
+
+    <!-- Basic info -->
+    <div class="card p-4 mb-4">
+      <div class="section-title">Asosiy ma'lumotlar</div>
+      <div class="row g-3">
+        <div class="col-12 field-group">
+          <label class="form-label">Dars sarlavhasi *</label>
+          {{ form.title }}
+          {% for e in form.title.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+        </div>
+        <div class="col-md-6 field-group">
+          <label class="form-label">Slug (URL)</label>
+          {{ form.slug }}
+          {% for e in form.slug.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:3px;">{{ e }}</div>{% endfor %}
+          <div style="font-size:.72rem;color:var(--slate-400);margin-top:3px;">Avtomatik to'ldiriladigan bo'lsa ham to'g'rilang</div>
+        </div>
+        <div class="col-md-3 field-group">
+          <label class="form-label">Fan</label>
+          {{ form.subject }}
+        </div>
+        <div class="col-md-3 field-group">
+          <label class="form-label">Sinf</label>
+          {{ form.grade }}
+        </div>
+        <div class="col-12 field-group">
+          <label class="form-label">Chorak</label>
+          {{ form.quarter }}
+        </div>
+        <div class="col-12 field-group">
+          <label class="form-label">Tavsif</label>
+          {{ form.description }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Video (YouTube only) -->
+    <div class="card p-4 mb-4">
+      <div class="section-title d-flex align-items-center gap-2">
+        <i class="bi bi-youtube" style="color:#EF4444;"></i>YouTube video
+      </div>
+      <div class="field-group">
+        <label class="form-label">YouTube havolasi *</label>
+        {{ form.youtube_url }}
+        {% for e in form.youtube_url.errors %}<div style="color:var(--red);font-size:.75rem;margin-top:4px;">{{ e }}</div>{% endfor %}
+        <div style="font-size:.72rem;color:var(--slate-400);margin-top:4px;">
+          Faqat YouTube havolalari qabul qilinadi. Misol:
+          <code>https://youtube.com/watch?v=dQw4w9WgXcQ</code>
+        </div>
+      </div>
+
+      {% if object and object.youtube_id %}
+      <div class="mt-3">
+        <div style="font-size:.78rem;color:var(--slate-500);margin-bottom:8px;font-weight:600;">Joriy video:</div>
+        <div style="position:relative;padding-top:56.25%;border-radius:8px;overflow:hidden;background:#000;">
+          <iframe src="{{ object.youtube_embed_url }}"
+                  style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+                  allowfullscreen></iframe>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Files -->
+    <div class="card p-4">
+      <div class="section-title">Fayllar</div>
+      <div class="row g-3">
+        <div class="col-md-6 field-group">
+          <label class="form-label">PDF konspekt</label>
+          {% if object and object.pdf_conspect %}
+            <div class="mb-2"><a href="{{ object.pdf_conspect.url }}" target="_blank" style="font-size:.78rem;color:var(--blue);">Mavjud: ko'rish <i class="bi bi-box-arrow-up-right"></i></a></div>
+          {% endif %}
+          {{ form.pdf_conspect }}
+        </div>
+        <div class="col-md-6 field-group">
+          <label class="form-label">Muqova rasmi</label>
+          {% if object and object.thumbnail %}
+            <div class="mb-2"><img src="{{ object.thumbnail.url }}" style="height:44px;border-radius:6px;border:1px solid var(--slate-200);"></div>
+          {% endif %}
+          {{ form.thumbnail }}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── RIGHT: settings ─── -->
+  <div class="col-lg-4">
+
+    <div class="sticky-actions">
+
+      <!-- Publish actions -->
+      <div class="card p-4 mb-4">
+        <div class="section-title">Holat</div>
+        <div class="d-flex flex-column gap-3 mb-4">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <div style="font-weight:600;font-size:.83rem;">Nashr etilgan</div>
+              <div style="font-size:.72rem;color:var(--slate-400);">O'quvchilar ko'rishi uchun</div>
+            </div>
+            {{ form.is_published }}
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 mb-2">
+          <i class="bi bi-check-lg me-1"></i>{% if object %}Saqlash{% else %}Yaratish{% endif %}
+        </button>
+        {% if from_quarter %}
+        <a href="{% url 'panel:quarter_edit' from_quarter.pk %}" class="btn btn-secondary w-100">Bekor qilish</a>
+        {% elif object and object.quarter %}
+        <a href="{% url 'panel:quarter_edit' object.quarter.pk %}" class="btn btn-secondary w-100">Bekor qilish</a>
+        {% else %}
+        <a href="{% url 'panel:lessons' %}" class="btn btn-secondary w-100">Bekor qilish</a>
+        {% endif %}
+      </div>
+
+      <!-- Metadata -->
+      <div class="card p-4 mb-4">
+        <div class="section-title">Meta</div>
+        <div class="row g-2">
+          <div class="col-6 field-group">
+            <label class="form-label">Davomiyligi (daq)</label>
+            {{ form.duration_minutes }}
+          </div>
+          <div class="col-6 field-group">
+            <label class="form-label">Tartib raqami</label>
+            {{ form.order }}
+          </div>
+        </div>
+      </div>
+
+      {% if object %}
+      <!-- Danger zone -->
+      <div class="card p-4" style="border-color:var(--red-light);">
+        <div style="font-size:.78rem;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">Xavfli zona</div>
+        <form method="post" action="{% url 'panel:lesson_delete' object.pk %}"
+              onsubmit="return confirm('«{{ object.title }}» darsini o\'chirishni tasdiqlaysizmi?')">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm w-100" style="background:var(--red-light);color:var(--red);border:1px solid #FCA5A5;">
+            <i class="bi bi-trash me-1"></i>Darsni o'chirish
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+</form>
+
+<!-- ─── QUIZ SECTION (only in edit mode) ─── -->
+{% if object %}
+<div class="mt-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h6 style="font-weight:700;font-size:1rem;margin:0;">
+      <i class="bi bi-patch-question me-2" style="color:var(--purple);"></i>
+      Dars testi
+    </h6>
+    {% if not quiz %}
+    <a href="{% url 'panel:quiz_create' %}?lesson={{ object.pk }}&type=lesson" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus me-1"></i>Test yaratish
+    </a>
+    {% endif %}
+  </div>
+
+  {% if quiz %}
+  <div class="card">
+    <!-- Quiz header -->
+    <div class="card-header-panel" style="background:var(--purple-light);border-color:#DDD6FE;">
+      <div class="d-flex align-items-center gap-3">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--purple);display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-patch-question-fill" style="color:#fff;font-size:.95rem;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:.9rem;">{{ quiz.title }}</div>
+          <div style="font-size:.72rem;color:var(--slate-500);">{{ questions|length }} savol · {{ quiz.time_limit|default:"Cheksiz" }}{% if quiz.time_limit %} daqiqa{% endif %} · O'tish: {{ quiz.pass_score }}%</div>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'panel:quiz_edit' quiz.pk %}" class="btn btn-sm btn-secondary">
+          <i class="bi bi-pencil me-1"></i>Testni tahrirlash
+        </a>
+        <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus me-1"></i>Savol qo'shish
+        </a>
+      </div>
+    </div>
+
+    <!-- Questions list -->
+    <div class="p-4">
+      {% if questions %}
+      {% for q in questions %}
+      <div class="question-item">
+        <div class="d-flex align-items-start gap-3">
+          <div class="q-badge">{{ forloop.counter }}</div>
+          <div class="flex-grow-1">
+            <div style="font-weight:500;font-size:.85rem;margin-bottom:6px;">{{ q.text|truncatechars:120 }}</div>
+            <div class="d-flex flex-wrap gap-1">
+              {% for choice in q.choices.all %}
+              <span class="choice-pill {% if choice.is_correct %}correct{% endif %}">
+                {% if choice.is_correct %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                {{ choice.text|truncatechars:30 }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <a href="{% url 'panel:question_edit' q.pk %}" class="btn-icon" title="Tahrirlash">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="post" action="{% url 'panel:question_delete' q.pk %}"
+                  onsubmit="return confirm('Savolni o\'chirishni tasdiqlaysizmi?')" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn-icon" title="O'chirish" style="color:var(--red);">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      <div class="mt-3 text-center">
+        <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-primary">
+          <i class="bi bi-plus me-1"></i>Yana savol qo'shish
+        </a>
+      </div>
+      {% else %}
+      <div class="text-center py-4">
+        <i class="bi bi-question-circle" style="font-size:2.5rem;color:var(--slate-200);"></i>
+        <div style="color:var(--slate-400);margin-top:8px;font-size:.85rem;">Savollar hali qo'shilmagan</div>
+        <a href="{% url 'panel:question_create' quiz.pk %}" class="btn btn-sm btn-primary mt-3">
+          <i class="bi bi-plus me-1"></i>Birinchi savolni qo'shish
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card p-5 text-center" style="border-style:dashed;border-color:var(--slate-200);">
+    <i class="bi bi-patch-question" style="font-size:2.5rem;color:var(--slate-200);"></i>
+    <div style="font-weight:600;margin-top:12px;font-size:.9rem;">Bu dars uchun test yaratilmagan</div>
+    <div style="color:var(--slate-400);font-size:.82rem;margin-top:4px;">Dars tugagach o'quvchilar test yechsin</div>
+    <a href="{% url 'panel:quiz_create' %}?lesson={{ object.pk }}&type=lesson" class="btn btn-primary btn-sm mt-4">
+      <i class="bi bi-plus me-1"></i>Test yaratish
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-fill slug from title
+const titleInput = document.querySelector('[name="title"]');
+const slugInput  = document.querySelector('[name="slug"]');
+if (titleInput && slugInput && !slugInput.value) {
+  titleInput.addEventListener('input', () => {
+    slugInput.value = titleInput.value
+      .toLowerCase().trim()
+      .replace(/[^a-z0-9\s\-]/g,'')
+      .replace(/\s+/g,'-');
+  });
+}
+</script>
+{% endblock %}

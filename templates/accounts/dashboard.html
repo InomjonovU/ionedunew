@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — EduSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-box {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    transition: all .2s;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-box:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .stat-box .sb-num {
+    font-family: 'Sora', sans-serif;
+    font-weight: 800; font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-box .sb-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem;
+    margin: 0 auto 12px;
+  }
+
+  .lesson-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--dark);
+    transition: background .15s, border-color .15s;
+    border: 1px solid transparent;
+  }
+  .lesson-item:hover { background: var(--light); border-color: var(--border); }
+
+  .quick-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600; font-size: .875rem;
+    transition: all .15s;
+    border: 1px solid var(--border);
+    color: var(--dark2);
+    background: #fff;
+  }
+  .quick-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+  .quick-btn i { font-size: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+<div class="container py-4">
+
+  <!-- ── HEADER ──────────────────────────────────────────── -->
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-800 mb-1">Salom, {{ user.first_name }}! 👋</h4>
+      <p class="text-muted mb-0" style="font-size:.9rem;">
+        {% if user.get_grade_label %}{{ user.get_grade_label }} •{% endif %}
+        {{ user.get_language_display }}
+        {% if unread_count %}
+        <span class="badge-red px-2 py-1 ms-2 rounded-pill" style="font-size:.72rem;">
+          {{ unread_count }} yangi xabar
+        </span>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── STAT KARTALAR ────────────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <div class="sb-icon" style="background:var(--blue-bg);color:var(--blue);">
+          <i class="bi bi-play-circle-fill"></i>
+        </div>
+        <div class="sb-num" style="color:var(--blue);">{{ stats.lessons_viewed }}</div>
+        <div class="text-muted" style="font-size:.8rem;font-weight:500;">Dars ko'rildi</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <div class="sb-icon" style="background:var(--purple-bg);color:var(--purple);">
+          <i class="bi bi-clipboard-check-fill"></i>
+        </div>
+        <div class="sb-num" style="color:var(--purple);">{{ stats.tests_passed }}</div>
+        <div class="text-muted" style="font-size:.8rem;font-weight:500;">Test o'tildi</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <div class="sb-icon" style="background:var(--amber-bg);color:var(--amber);">
+          <i class="bi bi-award-fill"></i>
+        </div>
+        <div class="sb-num" style="color:var(--amber);">{{ stats.certificates }}</div>
+        <div class="text-muted" style="font-size:.8rem;font-weight:500;">Sertifikat</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box">
+        <div class="sb-icon" style="background:var(--purple-bg);color:var(--purple);">
+          <i class="bi bi-trophy-fill"></i>
+        </div>
+        <div class="sb-num" style="color:var(--purple);">{{ stats.total_score }}</div>
+        <div class="text-muted" style="font-size:.8rem;font-weight:500;">Umumiy ball</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── CHAP USTUN ────────────────────────────────────── -->
+    <div class="col-lg-8">
+
+      <!-- Fan bo'yicha progress -->
+      {% if subject_progress %}
+      <div class="card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-700 mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-line-fill" style="color:var(--blue);"></i>Fan bo'yicha progress
+          </h6>
+          <a href="{% url 'subjects:list' %}" class="btn btn-sm btn-light" style="font-size:.78rem;">Barcha fanlar</a>
+        </div>
+        <div class="d-flex flex-column gap-3">
+          {% for sp in subject_progress %}
+          <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <div class="subj-icon subj-{{ sp.subject.color }}" style="width:28px;height:28px;border-radius:8px;font-size:.85rem;">
+                  <i class="bi {{ sp.subject.icon }}"></i>
+                </div>
+                <span style="font-size:.88rem;font-weight:600;">{{ sp.subject.name }}</span>
+              </div>
+              <span style="font-size:.78rem;color:var(--gray);">{{ sp.viewed }}/{{ sp.total }}</span>
+            </div>
+            <div class="progress">
+              <div class="progress-bar"
+                   style="width:{{ sp.percent }}%;"
+                   aria-valuenow="{{ sp.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- So'nggi ko'rilgan darslar -->
+      {% if recent_views %}
+      <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h6 class="fw-700 mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history" style="color:var(--blue);"></i>So'nggi ko'rilgan darslar
+          </h6>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          {% for v in recent_views %}
+          <a href="{% url 'lessons:detail' v.lesson.pk %}" class="lesson-item">
+            <div class="subj-icon subj-{{ v.lesson.subject.color }}"
+                 style="width:38px;height:38px;border-radius:10px;font-size:1rem;flex-shrink:0;">
+              <i class="bi {{ v.lesson.subject.icon }}"></i>
+            </div>
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-600 text-truncate" style="font-size:.9rem;">{{ v.lesson.title }}</div>
+              <div class="text-muted" style="font-size:.76rem;">{{ v.lesson.subject.name }} • {{ v.viewed_at|timesince }} oldin</div>
+            </div>
+            {% if v.completed %}
+            <span class="badge-blue px-2 py-1 rounded-pill flex-shrink-0" style="font-size:.7rem;">
+              <i class="bi bi-check-circle-fill me-1"></i>Tugallandi
+            </span>
+            {% else %}
+            <span class="badge-gray px-2 py-1 rounded-pill flex-shrink-0" style="font-size:.7rem;">Davom etish</span>
+            {% endif %}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card p-5 text-center">
+        <div style="width:64px;height:64px;background:var(--blue-bg);border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="bi bi-play-circle" style="font-size:1.8rem;color:var(--blue);"></i>
+        </div>
+        <h6 class="fw-700 mb-2">Birinchi darsni boshlang!</h6>
+        <p class="text-muted mb-3" style="font-size:.9rem;">Sizga mos fanlarni tanlang va o'qishni boshlang.</p>
+        <a href="{% url 'subjects:list' %}" class="btn btn-primary px-4">Fanlarni ko'rish <i class="bi bi-arrow-right ms-1"></i></a>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ── O'NG USTUN ─────────────────────────────────────── -->
+    <div class="col-lg-4">
+
+      <!-- So'nggi test natijalari -->
+      {% if recent_attempts %}
+      <div class="card p-4 mb-4">
+        <h6 class="fw-700 mb-4 d-flex align-items-center gap-2">
+          <i class="bi bi-clipboard-data-fill" style="color:var(--blue);"></i>So'nggi testlar
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          {% for a in recent_attempts %}
+          <a href="{% url 'quizzes:result' a.pk %}"
+             class="d-flex align-items-center justify-content-between text-decoration-none p-3 rounded-3"
+             style="background:var(--light);border:1px solid var(--border);transition:all .15s;"
+             onmouseover="this.style.borderColor='var(--blue)'"
+             onmouseout="this.style.borderColor='var(--border)'">
+            <div class="overflow-hidden me-2">
+              <div class="fw-600 text-dark text-truncate" style="font-size:.85rem;">{{ a.quiz.title }}</div>
+              <div class="text-muted" style="font-size:.75rem;">{{ a.started_at|date:"d.m.Y" }}</div>
+            </div>
+            <span class="fw-800 rounded-pill px-3 py-1 flex-shrink-0" style="font-size:.8rem;{% if a.is_passed %}background:var(--blue-bg);color:var(--blue);{% else %}background:var(--red-bg);color:var(--red);{% endif %}">
+              {{ a.score|floatformat:0 }}%
+            </span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Tezkor havolalar -->
+      <div class="card p-4">
+        <h6 class="fw-700 mb-4 d-flex align-items-center gap-2">
+          <i class="bi bi-grid-3x3" style="color:var(--purple);"></i>Tezkor havolalar
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <a href="{% url 'subjects:list' %}" class="quick-btn">
+            <i class="bi bi-grid-3x3-gap" style="color:var(--blue);"></i>Fanlar
+          </a>
+          <a href="{% url 'library:list' %}" class="quick-btn">
+            <i class="bi bi-book-fill" style="color:var(--amber);"></i>Kutubxona
+          </a>
+          <a href="{% url 'leaderboard:leaderboard' %}" class="quick-btn">
+            <i class="bi bi-trophy-fill" style="color:#F59E0B;"></i>Reyting
+          </a>
+          <a href="{% url 'certificates:list' %}" class="quick-btn">
+            <i class="bi bi-award-fill" style="color:var(--amber);"></i>Sertifikatlar
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+{% endblock %}
