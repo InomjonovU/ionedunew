@@ -8,7 +8,8 @@ environ.Env.read_env(BASE_DIR / '.env')
 
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-change-me-in-production')
 DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+allowed_hosts_str = env('ALLOWED_HOSTS', default='ionedunew-production.up.railway.app,localhost,127.0.0.1')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.replace(',', ' ').split() if host.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
