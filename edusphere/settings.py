@@ -11,6 +11,9 @@ DEBUG = env('DEBUG')
 allowed_hosts_str = env('ALLOWED_HOSTS', default='ionedunew-production.up.railway.app,localhost,127.0.0.1')
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.replace(',', ' ').split() if host.strip()]
 
+csrf_trusted_origins_str = env('CSRF_TRUSTED_ORIGINS', default='https://ionedunew-production.up.railway.app')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_trusted_origins_str.replace(',', ' ').split() if origin.strip()]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
